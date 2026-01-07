@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+
+// Extract categories from directories
+const categories = [...new Set(allPosts.map(post => 
+    post.id.includes('/') ? post.id.split('/')[0] : null
+).filter(Boolean))].map(cat => ({
+    name: cat!.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    slug: cat
+}));
+
+// Extract tags
+const tags = [...new Set(allPosts.flatMap(post => post.data.tags || []))].map(tag => ({
+    name: tag,
+    slug: tag
+}));
+
+// Merge and deduplicate by name
+const allTopicsMap = new Map();
+[...categories, ...tags].forEach(topic => {
+    if (!allTopicsMap.has(topic.name)) {
+        allTopicsMap.set(topic.name, topic);
+    }
+});
+
+const allTopics = Array.from(allTopicsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+---
+
+<div class="bg-white dark:bg-dark-surface p-6 rounded-2xl border border-gray-100 dark:border-dark-border">
+    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-slate-100">
+        <span class="lang-en-only">Topics</span>
+        <span class="lang-zh-only">话题</span>
+    </h3>
+    <div class="flex flex-wrap gap-2">
+        {allTopics.map((topic) => (
+            <a href={`/blog?topic=${topic.slug}`} class="px-3 py-1 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm transition-colors border border-transparent dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                {topic.name}
+            </a>
+        ))}
+    </div>
+</div>

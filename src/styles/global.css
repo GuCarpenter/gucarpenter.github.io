@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Enable class-based dark mode */
+@variant dark (&:where(.dark, .dark *));
+
+/* Language Switching Utilities */
+/* Default: Show EN, Hide ZH */
+.lang-zh-only {
+  display: none !important;
+}
+
+/* When html has .lang-zh: Hide EN, Show ZH */
+html.lang-zh .lang-en-only {
+  display: none !important;
+}
+
+html.lang-zh .lang-zh-only {
+  display: block !important; /* Force display for block elements */
+}
+html.lang-zh .grid.lang-zh-only {
+  display: grid !important;
+}
+html.lang-zh .flex.lang-zh-only {
+  display: flex !important;
+}
+html.lang-zh span.lang-zh-only {
+    display: inline !important; /* Force inline for spans */
+}
+
+
+@theme {
+  --font-sans: "Noto Sans", "Noto Sans SC", sans-serif;
+
+  --color-primary: #0ea5e9;
+  --color-secondary: #38bdf8;
+  
+  --color-dark: #020617;
+  --color-dark-surface: #0f172a;
+  --color-dark-border: #1e293b;
+}
+
+@layer base {
+  :root {
+    --accent: #0ea5e9;
+    --accent-dark: #0284c7;
+  }
+
+  html {
+    @apply scroll-smooth bg-white dark:bg-dark;
+  }
+
+  body {
+    @apply bg-white text-slate-900 dark:bg-dark dark:text-slate-200 transition-colors duration-300;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .nav-item {
+    @apply relative py-2 transition-colors duration-200;
+  }
+
+  .nav-item::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500 transition-all duration-300;
+  }
+
+  .nav-item:hover::after {
+    @apply w-full;
+  }
+
+  .post-title {
+    @apply hover:text-sky-600 dark:hover:text-sky-400 transition-colors;
+  }
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-dark;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-slate-800 rounded-full border-2 border-dark hover:bg-slate-700;
+}
+
+/* Typography Overrides for Inline Code */
+.prose :where(code):not(:where([class~="not-prose"] *)) {
+  color: var(--color-primary);
+  background-color: #f1f5f9; /* slate-100 */
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-weight: 600;
+}
+
+.dark .prose :where(code):not(:where([class~="not-prose"] *)) {
+  color: #7dd3fc; /* sky-300 */
+  background-color: rgba(14, 165, 233, 0.1);
+}
+
+.prose :where(code):not(:where([class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"] *))::after {
+  content: none !important;
+}
+
+.prose :where(pre code):not(:where([class~="not-prose"] *)) {
+  background-color: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+  font-weight: normal;
+}
+
+/* Fix for KaTeX double rendering (Reverted) */
+
+/* Reset heading links style */
+.prose :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(:where([class~="not-prose"] *)) {
+  color: inherit;
+  text-decoration: none;
+  font-weight: inherit;
+}
+
+.prose :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(:where([class~="not-prose"] *)):hover {
+  text-decoration: underline;
+}

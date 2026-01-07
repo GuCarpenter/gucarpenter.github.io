@@ -1,0 +1,220 @@
+---
+import HeaderLink from './HeaderLink.astro';
+import guIcon from '../assets/gu-icon.png';
+import { Image } from 'astro:assets';
+
+interface Props {
+    translatedSlug?: string | null;
+}
+
+const { translatedSlug } = Astro.props;
+---
+
+<header class="sticky top-0 z-50 bg-white/90 dark:bg-dark/90 backdrop-blur-md border-b border-gray-100 dark:border-dark-border">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <a href="/" class="flex-shrink-0 flex items-center gap-4 group">
+                <Image src={guIcon} alt="Logo" class="w-10 h-10 rounded-md transition-transform group-hover:scale-105" />
+                <span class="font-bold text-2xl tracking-tight group-hover:text-primary transition-colors text-slate-900 dark:text-slate-100">
+
+          <span class="lang-en-only">GuCarpenter's Cabin</span>
+          <span class="lang-zh-only">顾木匠的小屋</span>
+        </span>
+      </a>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-6">
+        <HeaderLink
+          href="/blog"
+          class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+        >
+          <span class="lang-en-only">Blogs</span>
+          <span class="lang-zh-only">博客</span>
+        </HeaderLink>
+        <HeaderLink
+          href="/projects"
+          class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+        >
+          <span class="lang-en-only">Projects</span>
+          <span class="lang-zh-only">项目</span>
+        </HeaderLink>
+        <HeaderLink
+          href="/about"
+          class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+        >
+          <span class="lang-en-only">About</span>
+          <span class="lang-zh-only">关于</span>
+        </HeaderLink>
+
+        <div class="relative group" id="search-container">
+          <i
+            class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"
+          ></i>
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search..."
+            class="pl-8 pr-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border-none text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-dark-surface w-40 focus:w-60 transition-all duration-300 placeholder-slate-400"
+            autocomplete="off"
+          />
+          <div
+            id="search-results"
+            class="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-gray-100 dark:border-dark-border overflow-hidden hidden z-50 max-h-96 overflow-y-auto"
+          >
+          </div>
+        </div>
+
+        <div class="h-6 w-px bg-gray-200 dark:bg-slate-700 mx-2"></div>
+        <div class="flex items-center space-x-1">
+          <button
+            id="lang-toggle"
+            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors font-medium text-sm"
+            aria-label="Switch Language"
+            data-translated-slug={translatedSlug}
+          >
+            <span class="lang-en-only">中</span>
+            <span class="lang-zh-only">EN</span>
+          </button>
+          <button
+            id="theme-toggle"
+            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors"
+          >
+            <i class="far fa-moon !hidden dark:!inline-block"></i>
+            <i class="far fa-sun !inline-block dark:!hidden"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  interface Post {
+    title: string;
+    description: string;
+    slug: string;
+    lang: string;
+    body: string;
+  }
+
+  let searchData: Post[] = [];
+
+  // Fetch search index once
+  fetch("/search.json")
+    .then((response) => response.json())
+    .then((data) => {
+      searchData = data;
+    })
+    .catch(console.error);
+
+  function initHeader() {
+    const searchInput = document.getElementById(
+      "search-input",
+    ) as HTMLInputElement;
+    const searchResults = document.getElementById("search-results");
+
+    function updatePlaceholder() {
+      const isZh = document.documentElement.classList.contains("lang-zh");
+      if (searchInput) {
+        searchInput.placeholder = isZh ? "搜索文章..." : "Search posts...";
+      }
+    }
+
+    // Update placeholder on load and language toggle
+    updatePlaceholder();
+    // Observe language changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          updatePlaceholder();
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+
+    searchInput?.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const isZh = document.documentElement.classList.contains("lang-zh");
+      const currentLang = isZh ? "zh" : "en";
+
+      if (query.length < 2) {
+        searchResults?.classList.add("hidden");
+        return;
+      }
+
+      const filtered = searchData.filter((post) => {
+        // Filter by current language
+        if (post.lang !== currentLang) return false;
+
+        // Search in title, description, and body
+        return (
+          post.title?.toLowerCase().includes(query) ||
+          post.description?.toLowerCase().includes(query) ||
+          post.body?.toLowerCase().includes(query)
+        );
+      });
+
+      if (filtered.length > 0) {
+        if (searchResults) {
+          searchResults.innerHTML = filtered
+            .map(
+              (post) => `
+                  <a href="${post.slug}" class="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-gray-100 dark:border-dark-border last:border-0">
+                      <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100 mb-1">${post.title}</h4>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${post.description}</p>
+                  </a>
+              `,
+            )
+            .join("");
+          searchResults.classList.remove("hidden");
+        }
+      } else {
+        if (searchResults) {
+          searchResults.innerHTML = `
+                  <div class="p-4 text-sm text-slate-500 dark:text-slate-400 text-center">
+                      ${isZh ? "未找到结果" : "No results found"}
+                  </div>
+              `;
+          searchResults.classList.remove("hidden");
+        }
+      }
+    });
+
+    // Close on click outside
+    document.addEventListener("click", (e) => {
+      if (
+        !document.getElementById("search-container")?.contains(e.target as Node)
+      ) {
+        searchResults?.classList.add("hidden");
+      }
+    });
+
+    // Theme Toggle
+    const themeToggleBtn = document.getElementById("theme-toggle");
+    themeToggleBtn?.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      localStorage.theme = document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+    });
+
+    // Language Toggle
+    const langToggleBtn = document.getElementById("lang-toggle");
+    langToggleBtn?.addEventListener("click", () => {
+      const translatedSlug = langToggleBtn.getAttribute("data-translated-slug");
+
+      // Toggle state
+      document.documentElement.classList.toggle("lang-zh");
+      const isZh = document.documentElement.classList.contains("lang-zh");
+      localStorage.lang = isZh ? "zh" : "en";
+
+      // Navigate if translated slug exists
+      if (translatedSlug) {
+        window.location.href = `/blog/${translatedSlug}/`;
+      }
+    });
+  }
+
+  // Initialize on initial load and View Transitions navigation
+  document.addEventListener("astro:page-load", initHeader);
+</script>

@@ -1,0 +1,50 @@
+---
+import guIcon from "../assets/gu-icon.png";
+import { Image } from "astro:assets";
+---
+
+<div
+  class="bg-white dark:bg-dark-surface p-6 rounded-2xl border border-gray-100 dark:border-dark-border"
+>
+  <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-slate-100">
+    <a href="/about" class="hover:text-primary transition-colors">
+      <span class="lang-en-only">About Me</span>
+      <span class="lang-zh-only">关于我</span>
+    </a>
+  </h3>
+  <div class="flex items-center gap-4 mb-4">
+    <div class="w-16 h-16 rounded-xl overflow-hidden">
+      <Image src={guIcon} alt="Profile" class="w-full h-full object-cover" />
+    </div>
+    <div>
+      <p class="font-medium text-slate-900 dark:text-slate-100">
+        <span class="lang-en-only">GuCarpenter</span>
+        <span class="lang-zh-only">顾木匠</span>
+      </p>
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        <span class="lang-en-only">A Technological Utopian</span>
+        <span class="lang-zh-only">一个技术乌托邦主义者</span>
+      </p>
+    </div>
+  </div>
+  <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+    <span class="lang-en-only"
+      >Passionate about technology and human happiness.</span
+    >
+    <span class="lang-zh-only">热爱技术，关注人类幸福。</span>
+  </p>
+  <div class="flex gap-4 justify-start">
+    <a
+      href="https://github.com/GuCarpenter"
+      target="_blank"
+      class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+      ><i class="fab fa-github text-xl"></i></a
+    >
+    <a
+      href="/rss.xml"
+      class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+      ><i class="fas fa-rss text-xl"></i></a
+    >
+  </div>
+</div>
+

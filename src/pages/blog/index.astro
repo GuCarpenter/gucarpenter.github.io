@@ -1,0 +1,321 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
+import { calculateReadingTime } from "../../utils/readingTime";
+
+const allPosts = await getCollection("blog");
+
+const postsEn = allPosts
+  .filter((p) => p.data.lang === "en")
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const postsZh = allPosts
+  .filter((p) => p.data.lang === "zh")
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="Blogs | GuCarpenter">
+  <header class="mb-10">
+    <h1
+      class="text-4xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-slate-100"
+    >
+      <span class="lang-en-only">Articles</span>
+      <span class="lang-zh-only">所有文章</span>
+    </h1>
+  </header>
+
+  <div class="space-y-12" id="blog-posts-container">
+    {/* English Posts List */}
+    <div class="lang-en-only space-y-12">
+      <div
+        id="filter-info-en"
+        class="hidden mb-8 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl flex justify-between items-center text-sky-800 dark:text-sky-200"
+      >
+        <span
+          >Showing posts for topic: <strong id="active-topic-en"></strong></span
+        >
+        <a href="/blog" class="text-sm font-bold underline">Clear Filter</a>
+      </div>
+      {
+        postsEn.map((post) => {
+          const category = post.id.includes("/") ? post.id.split("/")[0] : "";
+          const tags = post.data.tags || [];
+          const filterData = [category, ...tags]
+            .filter(Boolean)
+            .join(",")
+            .toLowerCase();
+
+          return (
+            <article
+              class="group relative flex flex-col space-y-4 post-item"
+              data-filter={filterData}
+            >
+              <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                <FormattedDate date={post.data.pubDate} />
+                <span>•</span>
+                <a
+                  href={`/blog?topic=${category}`}
+                  class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
+                >
+                  {category
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                </a>
+                <span>•</span>
+                <span>{calculateReadingTime(post.body || "")} min read</span>
+              </div>
+              <h3 class="text-2xl font-bold group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-slate-900 dark:text-slate-100">
+                <a
+                  href={`/blog/${post.id}/`}
+                  class="after:absolute after:inset-0"
+                >
+                  {post.data.title}
+                </a>
+              </h3>
+              <p class="text-slate-600 dark:text-slate-300 line-clamp-3">
+                {post.data.description}
+              </p>
+              {post.data.tags && post.data.tags.length > 0 && (
+                <div class="flex gap-2 pt-2 z-10 relative">
+                  {post.data.tags.map((tag) => (
+                    <a
+                      href={`/blog?topic=${tag}`}
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+                    >
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </article>
+          );
+        })
+      }
+    </div>
+
+    {/* Chinese Posts List */}
+    <div class="lang-zh-only space-y-12">
+      <div
+        id="filter-info-zh"
+        class="hidden mb-8 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl flex justify-between items-center text-sky-800 dark:text-sky-200"
+      >
+        <span>正在查看话题: <strong id="active-topic-zh"></strong> 的文章</span>
+        <a href="/blog" class="text-sm font-bold underline">清除筛选</a>
+      </div>
+      {
+        postsZh.map((post) => {
+          const category = post.id.includes("/") ? post.id.split("/")[0] : "";
+          const tags = post.data.tags || [];
+          const filterData = [category, ...tags]
+            .filter(Boolean)
+            .join(",")
+            .toLowerCase();
+
+          return (
+            <article
+              class="group relative flex flex-col space-y-4 post-item"
+              data-filter={filterData}
+            >
+              <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                <FormattedDate date={post.data.pubDate} />
+                <span>•</span>
+                <a
+                  href={`/blog?topic=${category}`}
+                  class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
+                >
+                  {category
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                </a>
+                <span>•</span>
+                <span>{calculateReadingTime(post.body || "")} 分钟阅读</span>
+              </div>
+              <h3 class="text-2xl font-bold group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-slate-900 dark:text-slate-100">
+                <a
+                  href={`/blog/${post.id}/`}
+                  class="after:absolute after:inset-0"
+                >
+                  {post.data.title}
+                </a>
+              </h3>
+              <p class="text-slate-600 dark:text-slate-300 line-clamp-3">
+                {post.data.description}
+              </p>
+              {post.data.tags && post.data.tags.length > 0 && (
+                <div class="flex gap-2 pt-2 z-10 relative">
+                  {post.data.tags.map((tag) => (
+                    <a
+                      href={`/blog?topic=${tag}`}
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+                    >
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </article>
+          );
+        })
+      }
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-12 flex justify-center gap-4">
+    <button id="prev-btn" class="px-4 py-2 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:border-sky-500 dark:hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium transition-colors">
+      <span class="lang-en-only">Previous</span>
+      <span class="lang-zh-only">上一页</span>
+    </button>
+    <button id="next-btn" class="px-4 py-2 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:border-sky-500 dark:hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium transition-colors">
+      <span class="lang-en-only">Next</span>
+      <span class="lang-zh-only">下一页</span>
+    </button>
+  </div>
+
+  <script>
+    const PAGE_SIZE = 10;
+    let currentPage = 1;
+
+    function applyFilterAndPagination() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topic = urlParams.get("topic")?.toLowerCase();
+      
+      // Determine which language list is active (based on html class, but we process both lists essentially or just the visible ones)
+      // Actually, since we hide one list via CSS, we should paginate the *active* list logic or just paginate DOM elements that match the filter.
+      // Simpler: treat all .post-item elements as candidates, but we know they are split into two parent divs.
+      // Let's just iterate over all .post-item. The parent div .lang-en-only / .lang-zh-only handles the language visibility.
+      // We just need to make sure we don't count hidden-by-language posts in the "visible" count? 
+      // No, the pagination UI is shared. We need to handle pagination for the *currently visible language*.
+      
+      const isZh = document.documentElement.classList.contains('lang-zh');
+      const containerSelector = isZh ? '.lang-zh-only .post-item' : '.lang-en-only .post-item';
+      const posts = Array.from(document.querySelectorAll(containerSelector)) as HTMLElement[];
+      
+      const filterEn = document.getElementById("filter-info-en");
+      const filterZh = document.getElementById("filter-info-zh");
+      const topicEn = document.getElementById("active-topic-en");
+      const topicZh = document.getElementById("active-topic-zh");
+
+      // 1. Filter
+      let visiblePosts = [];
+      if (topic) {
+        visiblePosts = posts.filter(post => {
+          const filterData = post.getAttribute("data-filter") || "";
+          return filterData.split(",").includes(topic);
+        });
+        
+        if (filterEn) filterEn.classList.remove("hidden");
+        if (filterZh) filterZh.classList.remove("hidden");
+        if (topicEn) topicEn.textContent = topic;
+        if (topicZh) topicZh.textContent = topic;
+      } else {
+        visiblePosts = posts;
+        if (filterEn) filterEn.classList.add("hidden");
+        if (filterZh) filterZh.classList.add("hidden");
+      }
+
+      // 2. Paginate
+      const totalPages = Math.ceil(visiblePosts.length / PAGE_SIZE);
+      if (currentPage > totalPages) currentPage = 1;
+      if (totalPages === 0) currentPage = 1; // Handle 0 results
+      
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+
+      // Hide ALL posts in the current language container first
+      posts.forEach(p => p.style.display = 'none');
+
+      // Show only the slice
+      visiblePosts.slice(startIndex, endIndex).forEach(p => p.style.display = 'flex');
+
+      // 3. Update Buttons
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      if (prevBtn) {
+        (prevBtn as HTMLButtonElement).disabled = currentPage === 1;
+        if (currentPage === 1) {
+            prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            prevBtn.classList.remove('hover:border-sky-500', 'dark:hover:border-sky-500');
+        } else {
+            prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            prevBtn.classList.add('hover:border-sky-500', 'dark:hover:border-sky-500');
+        }
+      }
+      
+      if (nextBtn) {
+        (nextBtn as HTMLButtonElement).disabled = currentPage >= totalPages || totalPages === 0;
+        if (currentPage >= totalPages || totalPages === 0) {
+            nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            nextBtn.classList.remove('hover:border-sky-500', 'dark:hover:border-sky-500');
+        } else {
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            nextBtn.classList.add('hover:border-sky-500', 'dark:hover:border-sky-500');
+        }
+      }
+    }
+
+    // Event Listeners
+    function initBlog() {
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Remove old listeners to avoid duplicates if re-running (simplest way is cloning or just adding robustly)
+        // Since astro:page-load fires once per nav, simple addEventListener is fine usually.
+        // But to be safe with closure state 'currentPage', we define logic inside init.
+
+        prevBtn?.replaceWith(prevBtn.cloneNode(true));
+        nextBtn?.replaceWith(nextBtn.cloneNode(true));
+        
+        const newPrevBtn = document.getElementById('prev-btn');
+        const newNextBtn = document.getElementById('next-btn');
+
+        newPrevBtn?.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                applyFilterAndPagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        newNextBtn?.addEventListener('click', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const topic = urlParams.get("topic")?.toLowerCase();
+            const isZh = document.documentElement.classList.contains('lang-zh');
+            const containerSelector = isZh ? '.lang-zh-only .post-item' : '.lang-en-only .post-item';
+            const posts = Array.from(document.querySelectorAll(containerSelector));
+            
+            const visibleCount = topic 
+                ? posts.filter(p => (p.getAttribute("data-filter") || "").split(",").includes(topic)).length 
+                : posts.length;
+            const totalPages = Math.ceil(visibleCount / PAGE_SIZE);
+
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyFilterAndPagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        
+        // Re-apply when language changes (observe class change on html)
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    currentPage = 1; // Reset page on lang switch
+                    applyFilterAndPagination();
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        applyFilterAndPagination();
+    }
+
+    // Run on initial load and View Transitions navigation
+    document.addEventListener("astro:page-load", () => {
+        currentPage = 1; // Always reset to page 1 on new navigation to the blog list
+        initBlog();
+    });
+  </script>
+</Layout>

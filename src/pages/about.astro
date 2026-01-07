@@ -1,0 +1,411 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import guGreatWall from "../assets/gu-great-wall.jpg";
+---
+
+<Layout title="About Me | GuCarpenter">
+  <header class="mb-10">
+    <h1
+      class="text-4xl font-extrabold tracking-tight mb-6 text-slate-900 dark:text-slate-100"
+    >
+      <span class="lang-en-only">About Me</span>
+      <span class="lang-zh-only">关于我</span>
+    </h1>
+  </header>
+
+  <div
+    class="prose prose-lg dark:prose-invert mb-10 text-slate-600 dark:text-slate-300"
+  >
+    <p class="lead text-xl font-medium text-slate-800 dark:text-slate-200">
+      <span class="lang-en-only"
+        >Hi, I'm GuCarpenter, a technological utopian passionate about
+        technology and human happiness.</span
+      >
+      <span class="lang-zh-only"
+        >你好，我是顾木匠，一位热爱技术，关注人类幸福的技术乌托邦主义者。</span
+      >
+    </p>
+    <p>
+      <span class="lang-en-only">
+        I believe the best way to understand the world is creating and sharing.
+        Here is my personal cabin documenting my journey through AI, system
+        archtecture and other interesting topics.
+      </span>
+      <span class="lang-zh-only">
+        我相信理解世界最好的方式是创造并分享。这里是记录个人在人工智能、系统架构及其他有趣话题的小屋。
+      </span>
+    </p>
+    <p>
+      <span class="lang-en-only">
+        I have worked on BigData, MachineLearning, SearchEngine and AIInfra. But
+        I also have special interests of Local-First apps, Digital Design,
+        Productivity Tools in my part time.
+      </span>
+      <span class="lang-zh-only">
+        我曾经在大数据、机器学习、搜索引擎和AI基础设施上工作过，同时在业余时间也对本地优先的应用，数字设计，生产力工具有浓厚的兴趣。
+      </span>
+    </p>
+    <p>
+      <span class="lang-en-only">
+        I'm living in Hangzhou, China. Besides technology, I love books, movies,
+        badminton, running and riding.
+      </span>
+      <span class="lang-zh-only">
+        我当前生活在杭州，除了技术之外，我喜欢阅读、电影、羽毛球、跑步和骑行。
+      </span>
+    </p>
+  </div>
+
+  <div class="my-12">
+    <Image
+      src={guGreatWall}
+      alt="Gu at Great Wall"
+      class="rounded-3xl shadow-2xl w-full object-cover max-h-[500px]"
+    />
+  </div>
+
+  <!-- Tech Stack Grid -->
+  <div class="mt-16">
+    <h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+      <span class="lang-en-only">Tech Stack</span>
+      <span class="lang-zh-only">技术栈</span>
+    </h3>
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+    >
+      <!-- Python -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fab fa-python text-3xl mb-2 text-yellow-500"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Python</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-yellow-500 h-full rounded-full" style="width: 90%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Expert</span
+        >
+      </div>
+
+      <!-- C++ -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <svg
+          class="w-10 h-10 mb-2"
+          viewBox="0 0 128 128"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M116.3 39.8L103.8 52.3C98.8 45.8 91.2 41.7 82.7 41.7C64.9 41.7 50.5 56.1 50.5 73.9C50.5 91.7 64.9 106.1 82.7 106.1C91.2 106.1 98.8 102 103.8 95.5L116.3 108C108.3 118.2 96.2 124.6 82.7 124.6C54.7 124.6 32 101.9 32 73.9C32 45.9 54.7 23.2 82.7 23.2C96.2 23.2 108.3 29.6 116.3 39.8Z"
+            fill="#00599C"></path>
+          <path
+            d="M101.3 71.3H89.8V59.8H84V71.3H72.5V77H84V88.5H89.8V77H101.3V71.3Z"
+            fill="#00599C"></path>
+          <path
+            d="M128 71.3H116.5V59.8H110.7V71.3H99.2V77H110.7V88.5H116.5V77H128V71.3Z"
+            fill="#00599C"></path>
+        </svg>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >C++</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-blue-600 h-full rounded-full" style="width: 70%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Advanced</span
+        >
+      </div>
+
+      <!-- C -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <svg
+          class="w-10 h-10 mb-2"
+          viewBox="0 0 128 128"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M116.3 39.8L103.8 52.3C98.8 45.8 91.2 41.7 82.7 41.7C64.9 41.7 50.5 56.1 50.5 73.9C50.5 91.7 64.9 106.1 82.7 106.1C91.2 106.1 98.8 102 103.8 95.5L116.3 108C108.3 118.2 96.2 124.6 82.7 124.6C54.7 124.6 32 101.9 32 73.9C32 45.9 54.7 23.2 82.7 23.2C96.2 23.2 108.3 29.6 116.3 39.8Z"
+            fill="#00599C"></path>
+        </svg>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >C</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-blue-600 h-full rounded-full" style="width: 50%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+
+      <!-- TypeScript -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fab fa-js text-3xl mb-2 text-yellow-400"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >TypeScript</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-yellow-400 h-full rounded-full" style="width: 50%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+      <!-- Rust -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fab fa-rust text-3xl mb-2 text-orange-500"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Rust</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-orange-500 h-full rounded-full" style="width: 20%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Beginner</span
+        >
+      </div>
+
+      <!-- Lua -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-moon text-3xl mb-2 text-blue-400"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Lua</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-blue-400 h-full rounded-full" style="width: 20%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Beginner</span
+        >
+      </div>
+
+      <!-- SystemVerilog -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-project-diagram text-3xl mb-2 text-gray-500"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >SystemVerilog</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-gray-500 h-full rounded-full" style="width: 25%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Beginner</span
+        >
+      </div>
+
+      <!-- LLM -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-brain text-3xl mb-2 text-purple-500"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >LLM</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-purple-500 h-full rounded-full" style="width: 90%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Expert</span
+        >
+      </div>
+
+      <!-- Machine Learning -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-microchip text-3xl mb-2 text-indigo-500"></i>
+        <span
+          class="font-medium text-slate-700 dark:text-slate-200 text-sm text-center"
+          >Machine Learning</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-indigo-500 h-full rounded-full" style="width: 70%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Advanced</span
+        >
+      </div>
+
+      <!-- Search Engine -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-search text-3xl mb-2 text-blue-500"></i>
+        <span
+          class="font-medium text-slate-700 dark:text-slate-200 text-sm text-center"
+          >Search Engine</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-blue-500 h-full rounded-full" style="width: 60%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+
+      <!-- Big Data -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-database text-3xl mb-2 text-green-600"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Big Data</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-green-600 h-full rounded-full" style="width: 60%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+      <!-- Megatron -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-bolt text-3xl mb-2 text-yellow-600"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Megatron</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-yellow-600 h-full rounded-full" style="width: 85%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Advanced</span
+        >
+      </div>
+
+      <!-- DeepSpeed -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-tachometer-alt text-3xl mb-2 text-red-600"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >DeepSpeed</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-red-600 h-full rounded-full" style="width: 85%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Advanced</span
+        >
+      </div>
+      <!-- PyTorch -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-fire text-3xl mb-2 text-red-500"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >PyTorch</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-red-500 h-full rounded-full" style="width: 50%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+
+      <!-- React -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fab fa-react text-3xl mb-2 text-sky-400"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >React</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-sky-400 h-full rounded-full" style="width: 50%"></div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Intermediate</span
+        >
+      </div>
+
+      <!-- Astro -->
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-xl hover:shadow-md transition-all"
+      >
+        <i class="fas fa-rocket text-3xl mb-2 text-orange-600"></i>
+        <span class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+          >Astro</span
+        >
+        <div
+          class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 mt-3 rounded-full overflow-hidden"
+        >
+          <div class="bg-orange-600 h-full rounded-full" style="width: 20%">
+          </div>
+        </div>
+        <span
+          class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold"
+          >Beginner</span
+        >
+      </div>
+    </div>
+  </div>
+</Layout>

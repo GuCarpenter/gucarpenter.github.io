@@ -1,0 +1,226 @@
+---
+import Layout from "./Layout.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import { calculateReadingTime } from "../utils/readingTime";
+
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  translatedSlug,
+  body,
+  headings,
+  tags,
+  category,
+  prevPost,
+  nextPost,
+} = Astro.props;
+const readingTime = body ? calculateReadingTime(body) : 1;
+const isZh = Astro.props.lang === "zh";
+
+const displayCategory = category
+  ? category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+  : isZh
+    ? "文章"
+    : "Article";
+
+const tocHeadings = headings
+  ? headings.filter(
+      (h) => h.depth <= 3 && !h.text.includes("$") && !h.text.includes("\\"),
+    )
+  : [];
+---
+
+<Layout
+  title={title}
+  description={description}
+  type="post"
+  translatedSlug={translatedSlug}
+>
+  <!-- Sidebar Slot: Table of Contents -->
+  <div
+    slot="sidebar"
+    class="bg-white dark:bg-dark-surface p-6 rounded-2xl border border-gray-100 dark:border-dark-border"
+  >
+    <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100 mb-4">
+      {title}
+    </h3>
+    <nav class="space-y-3 text-sm">
+      {
+        tocHeadings.map((heading) => (
+          <a
+            href={`#${heading.slug}`}
+            class={`block transition-colors hover:text-sky-500 text-slate-600 dark:text-slate-400 ${heading.depth === 3 ? "pl-4" : "font-medium"}`}
+          >
+            {heading.text}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <article>
+    <header class="mb-10">
+      <div
+        class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-4"
+      >
+        <FormattedDate date={pubDate} />
+        {
+          updatedDate && (
+            <div class="last-updated-on">
+              Last updated on <FormattedDate date={updatedDate} />
+            </div>
+          )
+        }
+        <span>•</span>
+        <a
+          href={`/blog?topic=${category || ""}`}
+          class="text-sky-600 dark:text-sky-400 font-medium hover:underline"
+        >
+          {displayCategory}
+        </a>
+        <span>•</span>
+        <span>{readingTime} {isZh ? "分钟阅读" : "min read"}</span>
+      </div>
+      <h1
+        class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"
+      >
+        {title}
+      </h1>
+      {
+        tags && tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mb-8">
+            {tags.map((tag) => (
+              <a
+                href={`/blog?topic=${tag}`}
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+              >
+                {tag}
+              </a>
+            ))}
+          </div>
+        )
+      }
+      {
+        heroImage && (
+          <img
+            width={1020}
+            height={510}
+            src={heroImage.src}
+            alt=""
+            class="rounded-2xl shadow-lg mb-8"
+          />
+        )
+      }
+    </header>
+
+    <div
+      class="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-sky-600 dark:prose-a:text-sky-400 hover:prose-a:text-sky-500"
+    >
+      <slot />
+    </div>
+
+    <!-- Back to Top -->
+    <div class="mt-12 flex justify-center">
+      <button
+        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        class="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 transition-colors"
+      >
+        <i
+          class="fas fa-arrow-up group-hover:-translate-y-1 transition-transform"
+        ></i>
+        Back to Top
+      </button>
+    </div>
+
+    <!-- Post Navigation -->
+    <div class="mt-12 pt-12 border-t border-gray-100 dark:border-dark-border grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {
+        prevPost ? (
+          <a href={prevPost.slug} class="group flex flex-col items-start gap-2 text-left p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
+              <i class="fas fa-arrow-left mr-1"></i> {isZh ? '上一篇' : 'Previous'}
+            </span>
+            <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+              {prevPost.title}
+            </span>
+          </a>
+        ) : <div />
+      }
+      {
+        nextPost && (
+          <a href={nextPost.slug} class="group flex flex-col items-end gap-2 text-right p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
+              {isZh ? '下一篇' : 'Next'} <i class="fas fa-arrow-right ml-1"></i>
+            </span>
+            <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+              {nextPost.title}
+            </span>
+          </a>
+        )
+      }
+    </div>
+
+    <section
+      id="giscus-container"
+      class="mt-16 pt-10 border-t border-gray-100 dark:border-dark-border"
+    >
+    </section>
+
+    <script is:inline>
+      function loadGiscus() {
+        const container = document.getElementById('giscus-container');
+        if (!container) return;
+
+        // Clear existing content
+        container.innerHTML = '';
+
+        const script = document.createElement('script');
+        script.src = 'https://giscus.app/client.js';
+        script.setAttribute('data-repo', 'GuCarpenter/gucarpenter.github.io');
+        script.setAttribute('data-repo-id', 'MDEwOlJlcG9zaXRvcnkzNjE3OTMxMA==');
+        script.setAttribute('data-category', 'Announcements');
+        script.setAttribute('data-category-id', 'DIC_kwDOAigNbs4C0s8x');
+        script.setAttribute('data-mapping', 'pathname');
+        script.setAttribute('data-strict', '0');
+        script.setAttribute('data-reactions-enabled', '1');
+        script.setAttribute('data-emit-metadata', '0');
+        script.setAttribute('data-input-position', 'bottom');
+        script.setAttribute('data-theme', 'preferred_color_scheme');
+        script.setAttribute('data-lang', document.documentElement.classList.contains('lang-zh') ? 'zh-CN' : 'en');
+        script.setAttribute('crossorigin', 'anonymous');
+        script.async = true;
+
+        container.appendChild(script);
+      }
+
+      function updateGiscusTheme() {
+        const theme = document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light";
+        const iframe = document.querySelector("iframe.giscus-frame");
+        if (!iframe) return;
+        iframe.contentWindow.postMessage(
+          { giscus: { setConfig: { theme: theme } } },
+          "https://giscus.app",
+        );
+      }
+
+      // Sync theme on toggle
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.attributeName === "class") {
+            updateGiscusTheme();
+          }
+        });
+      });
+      observer.observe(document.documentElement, { attributes: true });
+
+      // Load on initial load and navigation
+      document.addEventListener('astro:page-load', loadGiscus);
+    </script>
+  </article>
+</Layout>

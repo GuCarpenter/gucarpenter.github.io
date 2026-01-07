@@ -1,0 +1,129 @@
+--- 
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Topics from '../components/Topics.astro';
+import AboutWidget from '../components/AboutWidget.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+    // Optional: Pass 'post' to enable the sticky TOC sidebar slot
+    type?: 'page' | 'post'; 
+    translatedSlug?: string | null;
+}
+
+const { title, description = "AI & Engineering Blog", type = 'page', translatedSlug } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth scroll-pt-20">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body class="bg-white text-slate-900 dark:bg-dark dark:text-slate-200 transition-colors duration-300 flex flex-col min-h-screen font-sans">
+        
+        <Header translatedSlug={translatedSlug} />
+
+        <!-- Main Content Grid -->
+		<main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- Main Column (8 cols) -->
+                <div class="lg:col-span-8">
+			        <slot />
+                </div>
+
+                <!-- Sidebar Column (4 cols) -->
+                <aside class="lg:col-span-4 space-y-8">
+                    {type === 'post' ? (
+                        <div class="sticky top-24">
+                            <slot name="sidebar" />
+                        </div>
+                    ) : (
+                        <div class="space-y-8">
+                            <AboutWidget />
+                            <Topics />
+                        </div>
+                    )}
+                </aside>
+            </div>
+		</main>
+
+        <Footer />
+
+        <!-- Scripts -->
+        <script is:inline>
+            // Theme Toggle
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            themeToggleBtn?.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            });
+
+            // Language Toggle
+            const langToggleBtn = document.getElementById('lang-toggle');
+            langToggleBtn?.addEventListener('click', () => {
+                const translatedSlug = langToggleBtn.getAttribute('data-translated-slug');
+                
+                // Toggle state
+                document.documentElement.classList.toggle('lang-zh');
+                const isZh = document.documentElement.classList.contains('lang-zh');
+                localStorage.lang = isZh ? 'zh' : 'en';
+
+                // Navigate if translated slug exists
+                if (translatedSlug) {
+                    window.location.href = `/blog/${translatedSlug}/`;
+                }
+            });
+
+            // Add Copy Button to Code Blocks
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('pre').forEach((pre) => {
+                    if (pre.parentNode.classList.contains('relative') && pre.parentNode.classList.contains('group')) return;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'relative group';
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(pre);
+                    const button = document.createElement('button');
+                    button.className = 'absolute top-2 right-2 p-2 rounded bg-slate-700/50 hover:bg-slate-600 text-slate-300 opacity-0 group-hover:opacity-100 transition-all duration-200 focus:outline-none';
+                    button.innerHTML = '<i class="far fa-copy"></i>';
+                    button.addEventListener('click', async () => {
+                        const code = pre.querySelector('code')?.innerText || pre.innerText;
+                        try {
+                            await navigator.clipboard.writeText(code);
+                            button.innerHTML = '<i class="fas fa-check text-green-400"></i>';
+                            setTimeout(() => { button.innerHTML = '<i class="far fa-copy"></i>'; }, 2000);
+                        } catch (err) { button.innerHTML = '<i class="fas fa-times text-red-400"></i>'; }
+                    });
+                    wrapper.appendChild(button);
+                });
+            });
+
+            // Mermaid Initialization
+            document.addEventListener('astro:page-load', () => {
+                const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+                if (mermaidBlocks.length > 0) {
+                    mermaidBlocks.forEach((pre) => {
+                        const div = document.createElement('div');
+                        div.className = 'mermaid flex justify-center py-4 bg-transparent';
+                        div.textContent = pre.textContent; // Get text from pre directly
+                        pre.replaceWith(div);
+                    });
+                    
+                    // @ts-ignore
+                    if (window.mermaid) {
+                        // @ts-ignore
+                        window.mermaid.initialize({ 
+                            startOnLoad: false,
+                            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                            securityLevel: 'loose',
+                        });
+                        // @ts-ignore
+                        window.mermaid.run();
+                    }
+                }
+            });
+        </script>
+	</body>
+</html>

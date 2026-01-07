@@ -1,0 +1,65 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import BlogPost from '../../layouts/BlogPost.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+    
+    // Sort all posts by date
+    const sortedPosts = posts.sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+
+	return sortedPosts.map((post) => {
+        let translatedSlug = null;
+        if (post.data.lang === 'en') {
+            const zhId = post.id + '-zh';
+            if (posts.some(p => p.id === zhId)) {
+                translatedSlug = zhId;
+            }
+        } else if (post.data.lang === 'zh') {
+            const enId = post.id.replace(/-zh$/, '');
+            if (posts.some(p => p.id === enId)) {
+                translatedSlug = enId;
+            }
+        }
+
+        // Get prev/next posts in the same language
+        const langPosts = sortedPosts.filter(p => p.data.lang === post.data.lang);
+        const currentIndex = langPosts.findIndex(p => p.id === post.id);
+        const prevPost = currentIndex > 0 ? langPosts[currentIndex - 1] : null;
+        const nextPost = currentIndex < langPosts.length - 1 ? langPosts[currentIndex + 1] : null;
+        
+        return {
+            params: { slug: post.id },
+            props: { 
+                ...post, 
+                translatedSlug,
+                prevPost: prevPost ? { title: prevPost.data.title, slug: `/blog/${prevPost.id}/` } : null,
+                nextPost: nextPost ? { title: nextPost.data.title, slug: `/blog/${nextPost.id}/` } : null,
+            },
+        };
+    });
+}
+type Props = CollectionEntry<'blog'> & { 
+    translatedSlug: string | null;
+    prevPost: { title: string, slug: string } | null;
+    nextPost: { title: string, slug: string } | null;
+};
+
+const { translatedSlug, prevPost, nextPost, ...post } = Astro.props;
+const { Content, headings } = await render(post);
+
+// Extract category from ID (e.g., "deep_learning/RoPE" -> "deep_learning")
+const category = post.id.includes('/') ? post.id.split('/')[0] : null;
+---
+
+<BlogPost 
+    {...post.data} 
+    body={post.body} 
+    translatedSlug={translatedSlug} 
+    headings={headings} 
+    category={category}
+    prevPost={prevPost}
+    nextPost={nextPost}
+>
+	<Content />
+</BlogPost>

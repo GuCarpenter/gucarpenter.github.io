@@ -1,0 +1,86 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Projects | GuCarpenter">
+  <header class="mb-10">
+    <h1
+      class="text-4xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-slate-100"
+    >
+      <span class="lang-en-only">Projects</span>
+      <span class="lang-zh-only">项目展示</span>
+    </h1>
+    <p class="text-lg text-slate-600 dark:text-slate-300">
+      <span class="lang-en-only"
+        >A collection of my open source tools, libraries, and experiments.</span
+      >
+      <span class="lang-zh-only">我的一些开源工具、库和实验性项目的集合。</span>
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Project Card -->
+    <div
+      class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
+      data-repo="GuCarpenter/gucarpenter.github.io"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+          Personal Blog
+        </h3>
+        <div class="group relative flex items-center">
+          <span class="w-3 h-3 rounded-full bg-green-500 cursor-help"></span>
+          <span
+            class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
+          >
+            <span class="lang-en-only">Active Development</span>
+            <span class="lang-zh-only">积极开发中</span>
+          </span>
+        </div>
+      </div>
+      <p class="text-slate-600 dark:text-slate-300 mb-4 flex-grow">
+        <span class="lang-en-only">The repository of this blog.</span>
+        <span class="lang-zh-only">本博客对应的代码仓。</span>
+      </p>
+      <div class="flex gap-3 mt-auto">
+        <a
+          href="https://github.com/GuCarpenter/gucarpenter.github.io"
+          target="_blank"
+          class="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
+        >
+          <i class="fab fa-github"></i>
+          <span class="lang-en-only">View on GitHub</span>
+          <span class="lang-zh-only">查看 GitHub</span>
+        </a>
+        <span
+          class="star-count ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full"
+        >
+          <i class="fas fa-star text-yellow-400"></i>
+          <span class="count">--</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchGitHubStars() {
+      const elements = document.querySelectorAll("[data-repo]");
+      for (const el of elements) {
+        const repo = el.getAttribute("data-repo");
+        const countSpan = el.querySelector(".count");
+        if (!repo || !countSpan) continue;
+        try {
+          const res = await fetch(`https://api.github.com/repos/${repo}`);
+          if (!res.ok) throw new Error("Error");
+          const data = await res.json();
+          const stars = data.stargazers_count;
+          countSpan.textContent =
+            stars > 1000 ? (stars / 1000).toFixed(1) + "k" : stars;
+        } catch (error) {
+          countSpan.textContent = "---";
+        }
+      }
+    }
+    document.addEventListener("astro:page-load", fetchGitHubStars);
+  </script>
+</Layout>
