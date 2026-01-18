@@ -84,6 +84,73 @@ const { translatedSlug } = Astro.props;
           </button>
         </div>
       </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden flex items-center gap-4">
+        <button
+          id="mobile-menu-btn"
+          class="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none"
+        >
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Dropdown -->
+  <div
+    id="mobile-menu"
+    class="md:hidden hidden bg-white dark:bg-dark-surface border-b border-gray-100 dark:border-dark-border"
+  >
+    <div class="px-4 py-4 space-y-4">
+      <HeaderLink
+        href="/blog"
+        class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+      >
+        <span class="lang-en-only">Blogs</span>
+        <span class="lang-zh-only">博客</span>
+      </HeaderLink>
+      <HeaderLink
+        href="/projects"
+        class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+      >
+        <span class="lang-en-only">Projects</span>
+        <span class="lang-zh-only">项目</span>
+      </HeaderLink>
+      <HeaderLink
+        href="/about"
+        class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
+      >
+        <span class="lang-en-only">About</span>
+        <span class="lang-zh-only">关于</span>
+      </HeaderLink>
+
+      <div class="border-t border-gray-100 dark:border-dark-border pt-4 flex items-center justify-between">
+         <button
+            id="mobile-lang-toggle"
+            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors font-medium text-sm flex items-center gap-2"
+             aria-label="Switch Language"
+             data-translated-slug={translatedSlug}
+          >
+             <i class="fas fa-language text-lg"></i>
+            <span class="lang-en-only">中文</span>
+            <span class="lang-zh-only">English</span>
+          </button>
+          
+          <button
+            id="mobile-theme-toggle"
+             class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors flex items-center gap-2"
+          >
+            <div class="dark:hidden flex items-center gap-2">
+                 <i class="far fa-moon"></i>
+                 <span>Dark Mode</span>
+            </div>
+             <div class="hidden dark:flex items-center gap-2">
+                 <i class="far fa-sun"></i>
+                 <span>Light Mode</span>
+            </div>
+          </button>
+      </div>
     </div>
   </div>
 </header>
@@ -189,29 +256,62 @@ const { translatedSlug } = Astro.props;
       }
     });
 
-    // Theme Toggle
-    const themeToggleBtn = document.getElementById("theme-toggle");
-    themeToggleBtn?.addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
-      localStorage.theme = document.documentElement.classList.contains("dark")
-        ? "dark"
-        : "light";
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    mobileMenuBtn?.addEventListener("click", () => {
+        mobileMenu?.classList.toggle("hidden");
+        const icon = mobileMenuBtn.querySelector("i");
+        if (mobileMenu?.classList.contains("hidden")) {
+            icon?.classList.remove("fa-times");
+            icon?.classList.add("fa-bars");
+        } else {
+            icon?.classList.remove("fa-bars");
+            icon?.classList.add("fa-times");
+        }
     });
 
-    // Language Toggle
+
+    function toggleTheme() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.theme = document.documentElement.classList.contains("dark")
+            ? "dark"
+            : "light";
+    }
+
+    function toggleLanguage(slug?: string | null) {
+         // Toggle state
+        document.documentElement.classList.toggle("lang-zh");
+        const isZh = document.documentElement.classList.contains("lang-zh");
+        localStorage.lang = isZh ? "zh" : "en";
+
+        // Navigate if translated slug exists
+        if (slug) {
+            window.location.href = `/blog/${slug}/`;
+        }
+    }
+
+
+    // Theme Toggle (Desktop)
+    document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
+
+    // Theme Toggle (Mobile)
+    document.getElementById("mobile-theme-toggle")?.addEventListener("click", toggleTheme);
+
+
+    // Language Toggle (Desktop)
     const langToggleBtn = document.getElementById("lang-toggle");
     langToggleBtn?.addEventListener("click", () => {
-      const translatedSlug = langToggleBtn.getAttribute("data-translated-slug");
+         const translatedSlug = langToggleBtn.getAttribute("data-translated-slug");
+         toggleLanguage(translatedSlug);
+    });
 
-      // Toggle state
-      document.documentElement.classList.toggle("lang-zh");
-      const isZh = document.documentElement.classList.contains("lang-zh");
-      localStorage.lang = isZh ? "zh" : "en";
-
-      // Navigate if translated slug exists
-      if (translatedSlug) {
-        window.location.href = `/blog/${translatedSlug}/`;
-      }
+    // Language Toggle (Mobile)
+    const mobileLangToggleBtn = document.getElementById("mobile-lang-toggle");
+    mobileLangToggleBtn?.addEventListener("click", () => {
+         const translatedSlug = mobileLangToggleBtn.getAttribute("data-translated-slug");
+         toggleLanguage(translatedSlug);
     });
   }
 

@@ -54,29 +54,6 @@ const { title, description = "AI & Engineering Blog", type = 'page', translatedS
 
         <!-- Scripts -->
         <script is:inline>
-            // Theme Toggle
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            themeToggleBtn?.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-            });
-
-            // Language Toggle
-            const langToggleBtn = document.getElementById('lang-toggle');
-            langToggleBtn?.addEventListener('click', () => {
-                const translatedSlug = langToggleBtn.getAttribute('data-translated-slug');
-                
-                // Toggle state
-                document.documentElement.classList.toggle('lang-zh');
-                const isZh = document.documentElement.classList.contains('lang-zh');
-                localStorage.lang = isZh ? 'zh' : 'en';
-
-                // Navigate if translated slug exists
-                if (translatedSlug) {
-                    window.location.href = `/blog/${translatedSlug}/`;
-                }
-            });
-
             // Add Copy Button to Code Blocks
             document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('pre').forEach((pre) => {
