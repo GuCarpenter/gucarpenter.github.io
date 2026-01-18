@@ -19,6 +19,53 @@ import Layout from "../layouts/Layout.astro";
   </header>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- GuAIPC Project Card -->
+    <div
+      class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
+      data-repo="GuCarpenter/GuAIPC"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+          GuAIPC
+        </h3>
+        <div class="group relative flex items-center">
+          <span class="w-3 h-3 rounded-full bg-green-500 cursor-help"></span>
+          <span
+            class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
+          >
+            <span class="lang-en-only">Active Development</span>
+            <span class="lang-zh-only">积极开发中</span>
+          </span>
+        </div>
+      </div>
+      <p class="text-slate-600 dark:text-slate-300 mb-4 flex-grow">
+        <span class="lang-en-only"
+          >Building a dual-core CPU, TPU, and GPU on FPGA to learn computer
+          architecture.</span
+        >
+        <span class="lang-zh-only"
+          >在 FPGA 上构建双核 CPU、TPU 和 GPU 以学习计算机架构。</span
+        >
+      </p>
+      <div class="flex gap-3 mt-auto">
+        <a
+          href="https://github.com/GuCarpenter/GuAIPC"
+          target="_blank"
+          class="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
+        >
+          <i class="fab fa-github"></i>
+          <span class="lang-en-only">View on GitHub</span>
+          <span class="lang-zh-only">查看 GitHub</span>
+        </a>
+        <span
+          class="star-count ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full"
+        >
+          <i class="fas fa-star text-yellow-400"></i>
+          <span class="count">--</span>
+        </span>
+      </div>
+    </div>
+
     <!-- Project Card -->
     <div
       class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
