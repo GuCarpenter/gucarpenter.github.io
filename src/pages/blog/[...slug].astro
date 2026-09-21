@@ -57,6 +57,7 @@ const category = post.id.includes("/") ? post.id.split("/")[0] : null;
 <BlogPost
   {...post.data}
   lang="en"
+  id={post.id}
   body={post.body}
   alternateUrl={alternateUrl}
   headings={headings}

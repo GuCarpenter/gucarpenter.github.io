@@ -1,0 +1,21 @@
+---
+import { getCollection } from "astro:content";
+import TopicPage from "../../../../components/pages/TopicPage.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  const zhPosts = posts.filter((p) => p.data.lang === "zh");
+
+  const topics = new Set<string>();
+  for (const post of zhPosts) {
+    if (post.id.includes("/")) topics.add(post.id.split("/")[0]);
+    for (const tag of post.data.tags || []) topics.add(tag);
+  }
+
+  return [...topics].map((topic) => ({ params: { topic }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+---
+
+<TopicPage lang="zh" topic={topic} />

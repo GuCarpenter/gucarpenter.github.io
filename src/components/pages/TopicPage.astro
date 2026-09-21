@@ -1,0 +1,108 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import FormattedDate from "../FormattedDate.astro";
+import { calculateReadingTime } from "../../utils/readingTime";
+import {
+  useTranslations,
+  localizePath,
+  postUrl,
+  type Lang,
+} from "../../i18n/utils";
+import { getCollection } from "astro:content";
+
+interface Props {
+  lang: Lang;
+  topic: string;
+}
+
+const { lang, topic } = Astro.props;
+const t = useTranslations(lang);
+const blogHref = localizePath("/blog", lang);
+const topicLower = topic.toLowerCase();
+
+const allPosts = await getCollection("blog");
+const posts = allPosts
+  .filter((p) => p.data.lang === lang)
+  .filter((p) => {
+    const category = p.id.includes("/") ? p.id.split("/")[0] : "";
+    const tags = p.data.tags || [];
+    return [category, ...tags]
+      .filter(Boolean)
+      .map((v) => v.toLowerCase())
+      .includes(topicLower);
+  })
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const displayTopic = topic
+  .replace(/_/g, " ")
+  .replace(/-/g, " ")
+  .replace(/\b\w/g, (l) => l.toUpperCase());
+
+const pageTitle = `${displayTopic} | ${t("blog.heading")}`;
+---
+
+<Layout title={pageTitle} lang={lang}>
+  <header class="mb-10">
+    <p class="text-sm font-medium text-sky-600 dark:text-sky-400 mb-2">
+      <a href={blogHref} class="hover:underline">
+        {t("blog.heading")}
+      </a>
+    </p>
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2 text-slate-900 dark:text-slate-100">
+      {displayTopic}
+    </h1>
+    <p class="text-slate-500 dark:text-slate-400">
+      {posts.length}
+      {posts.length === 1 ? t("topic.post") : t("topic.posts")}
+    </p>
+  </header>
+
+  <div class="space-y-12">
+    {posts.map((post) => {
+      const category = post.id.includes("/") ? post.id.split("/")[0] : "";
+      return (
+        <article class="group relative flex flex-col space-y-4">
+          <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            <FormattedDate date={post.data.pubDate} lang={lang} />
+            <span>•</span>
+            <a
+              href={`${blogHref}/topics/${category}`}
+              class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
+            >
+              {category
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase())}
+            </a>
+            <span>•</span>
+            <span>
+              {calculateReadingTime(post.body || "")} {t("blog.readingTime")}
+            </span>
+          </div>
+          <h3 class="text-2xl font-bold group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-slate-900 dark:text-slate-100">
+            <a
+              href={postUrl(post.id, lang)}
+              class="after:absolute after:inset-0"
+            >
+              {post.data.title}
+            </a>
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 line-clamp-3">
+            {post.data.description}
+          </p>
+          {post.data.tags && post.data.tags.length > 0 && (
+            <div class="flex gap-2 pt-2 z-10 relative">
+              {post.data.tags.map((tag) => (
+                <a
+                  href={`${blogHref}/topics/${tag}`}
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+                >
+                  {tag}
+                </a>
+              ))}
+            </div>
+          )}
+        </article>
+      );
+    })}
+  </div>
+</Layout>

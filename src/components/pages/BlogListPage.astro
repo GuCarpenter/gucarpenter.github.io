@@ -32,36 +32,15 @@ const posts = allPosts
   </header>
 
   <div class="space-y-12" id="blog-posts-container">
-    <div
-      id="filter-info"
-      class="hidden mb-8 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl flex justify-between items-center text-sky-800 dark:text-sky-200"
-    >
-      <span>
-        {t("blog.filter.showing")}
-        <strong id="active-topic"></strong>
-      </span>
-      <a href={blogHref} class="text-sm font-bold underline">
-        {t("blog.filter.clear")}
-      </a>
-    </div>
     {posts.map((post) => {
       const category = post.id.includes("/") ? post.id.split("/")[0] : "";
-      const tags = post.data.tags || [];
-      const filterData = [category, ...tags]
-        .filter(Boolean)
-        .join(",")
-        .toLowerCase();
-
       return (
-        <article
-          class="group relative flex flex-col space-y-4 post-item"
-          data-filter={filterData}
-        >
+        <article class="group relative flex flex-col space-y-4 post-item">
           <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
             <FormattedDate date={post.data.pubDate} lang={lang} />
             <span>•</span>
             <a
-              href={`${blogHref}?topic=${category}`}
+              href={`${blogHref}/topics/${category}`}
               class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
             >
               {category
@@ -88,7 +67,7 @@ const posts = allPosts
             <div class="flex gap-2 pt-2 z-10 relative">
               {post.data.tags.map((tag) => (
                 <a
-                  href={`${blogHref}?topic=${tag}`}
+                  href={`${blogHref}/topics/${tag}`}
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
                 >
                   {tag}
@@ -127,44 +106,18 @@ const posts = allPosts
       ) as HTMLElement[];
     }
 
-    function getVisiblePosts(): HTMLElement[] {
-      const urlParams = new URLSearchParams(window.location.search);
-      const topic = urlParams.get("topic")?.toLowerCase();
+    function paginate() {
       const posts = getPosts();
-      if (!topic) return posts;
-      return posts.filter((post) =>
-        (post.getAttribute("data-filter") || "").split(",").includes(topic),
-      );
-    }
-
-    function applyFilterAndPagination() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const topic = urlParams.get("topic")?.toLowerCase();
-      const posts = getPosts();
-
-      const filterInfo = document.getElementById("filter-info");
-      const activeTopic = document.getElementById("active-topic");
-
-      const visiblePosts = getVisiblePosts();
-
-      if (topic) {
-        filterInfo?.classList.remove("hidden");
-        if (activeTopic) activeTopic.textContent = topic;
-      } else {
-        filterInfo?.classList.add("hidden");
-      }
-
-      const totalPages = Math.ceil(visiblePosts.length / PAGE_SIZE);
+      const totalPages = Math.ceil(posts.length / PAGE_SIZE);
       if (currentPage > totalPages) currentPage = 1;
       if (totalPages === 0) currentPage = 1;
 
       const startIndex = (currentPage - 1) * PAGE_SIZE;
       const endIndex = startIndex + PAGE_SIZE;
 
-      posts.forEach((p) => (p.style.display = "none"));
-      visiblePosts
-        .slice(startIndex, endIndex)
-        .forEach((p) => (p.style.display = "flex"));
+      posts.forEach((p, i) => {
+        p.style.display = i >= startIndex && i < endIndex ? "flex" : "none";
+      });
 
       const prevBtn = document.getElementById("prev-btn") as HTMLButtonElement;
       const nextBtn = document.getElementById("next-btn") as HTMLButtonElement;
@@ -192,21 +145,21 @@ const posts = allPosts
       document.getElementById("prev-btn")?.addEventListener("click", () => {
         if (currentPage > 1) {
           currentPage--;
-          applyFilterAndPagination();
+          paginate();
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
       });
 
       document.getElementById("next-btn")?.addEventListener("click", () => {
-        const totalPages = Math.ceil(getVisiblePosts().length / PAGE_SIZE);
+        const totalPages = Math.ceil(getPosts().length / PAGE_SIZE);
         if (currentPage < totalPages) {
           currentPage++;
-          applyFilterAndPagination();
+          paginate();
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
       });
 
-      applyFilterAndPagination();
+      paginate();
     }
 
     document.addEventListener("astro:page-load", () => {

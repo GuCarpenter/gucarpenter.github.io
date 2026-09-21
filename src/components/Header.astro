@@ -153,23 +153,40 @@ const aboutHref = localizePath("/about", lang);
 </header>
 
 <script>
-  interface Post {
-    title: string;
-    description: string;
-    slug: string;
-    lang: string;
-    body: string;
+  // Pagefind is generated into /pagefind/ after `astro build` runs.
+  // It is not available during `astro dev`, so search is a no-op in dev.
+  let pagefind: any = null;
+  let pagefindLang: string | null = null;
+  let pagefindLoading: Promise<void> | null = null;
+
+  async function loadPagefind(lang: string) {
+    // Pagefind loads the index matching `<html lang>` at init time. Because the
+    // module instance persists across View Transitions navigations, we key it
+    // to a language and reload a fresh instance when the language changes
+    // (using a per-language URL so the ES module cache returns a new instance).
+    if (pagefindLang === lang && (pagefind || pagefindLoading)) {
+      return pagefindLoading ?? undefined;
+    }
+    pagefind = null;
+    pagefindLang = lang;
+    pagefindLoading = (async () => {
+      try {
+        // The import goes through `new Function` so Vite does not bundle or
+        // transform it (which injects a broken __VITE_PRELOAD__ marker).
+        const url =
+          new URL("/pagefind/pagefind.js", window.location.origin).href +
+          "?lang=" +
+          lang;
+        const importModule = new Function("u", "return import(u)");
+        const module = await importModule(url);
+        await module.init();
+        pagefind = module;
+      } catch {
+        pagefind = null;
+      }
+    })();
+    return pagefindLoading;
   }
-
-  let searchData: Post[] = [];
-
-  // Fetch search index once
-  fetch("/search.json")
-    .then((response) => response.json())
-    .then((data) => {
-      searchData = data;
-    })
-    .catch(console.error);
 
   function initHeader() {
     const currentLang = document.documentElement.lang === "zh" ? "zh" : "en";
@@ -178,42 +195,42 @@ const aboutHref = localizePath("/about", lang);
     ) as HTMLInputElement;
     const searchResults = document.getElementById("search-results");
 
+    searchInput?.addEventListener("focus", () => loadPagefind(currentLang), {
+      once: true,
+    });
+
+    let debounce: ReturnType<typeof setTimeout>;
     searchInput?.addEventListener("input", () => {
-      const query = searchInput.value.toLowerCase();
+      clearTimeout(debounce);
+      debounce = setTimeout(async () => {
+        const query = searchInput.value.trim();
 
-      if (query.length < 2) {
-        searchResults?.classList.add("hidden");
-        return;
-      }
+        if (query.length < 2) {
+          searchResults?.classList.add("hidden");
+          return;
+        }
 
-      const filtered = searchData.filter((post) => {
-        // Filter by current language
-        if (post.lang !== currentLang) return false;
+        await loadPagefind(currentLang);
+        if (!pagefind || !searchResults) return;
 
-        // Search in title, description, and body
-        return (
-          post.title?.toLowerCase().includes(query) ||
-          post.description?.toLowerCase().includes(query) ||
-          post.body?.toLowerCase().includes(query)
+        const search = await pagefind.search(query);
+        const results = await Promise.all(
+          search.results.slice(0, 6).map((r: any) => r.data()),
         );
-      });
 
-      if (filtered.length > 0) {
-        if (searchResults) {
-          searchResults.innerHTML = filtered
+        if (results.length > 0) {
+          searchResults.innerHTML = results
             .map(
-              (post) => `
-                  <a href="${post.slug}" class="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-gray-100 dark:border-dark-border last:border-0">
-                      <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100 mb-1">${post.title}</h4>
-                      <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${post.description}</p>
+              (post: any) => `
+                  <a href="${post.url}" class="block p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-gray-100 dark:border-dark-border last:border-0">
+                      <h4 class="font-bold text-sm text-slate-900 dark:text-slate-100 mb-1">${post.meta?.title ?? ""}</h4>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${post.excerpt}</p>
                   </a>
               `,
             )
             .join("");
           searchResults.classList.remove("hidden");
-        }
-      } else {
-        if (searchResults) {
+        } else {
           searchResults.innerHTML = `
                   <div class="p-4 text-sm text-slate-500 dark:text-slate-400 text-center">
                       ${currentLang === "zh" ? "未找到结果" : "No results found"}
@@ -221,7 +238,7 @@ const aboutHref = localizePath("/about", lang);
               `;
           searchResults.classList.remove("hidden");
         }
-      }
+      }, 200);
     });
 
     // Close on click outside

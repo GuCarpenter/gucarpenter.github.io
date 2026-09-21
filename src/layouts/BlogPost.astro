@@ -17,6 +17,7 @@ const {
   category,
   prevPost,
   nextPost,
+  id,
 } = Astro.props;
 
 const lang = (Astro.props.lang ?? "en") as Lang;
@@ -24,6 +25,42 @@ const t = useTranslations(lang);
 const blogHref = localizePath("/blog", lang);
 
 const readingTime = body ? calculateReadingTime(body) : 1;
+
+const ogImagePath = id ? `/og/${id}.png` : undefined;
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = ogImagePath
+  ? new URL(ogImagePath, Astro.site).toString()
+  : undefined;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description,
+  inLanguage: lang === "zh" ? "zh-CN" : "en",
+  datePublished: pubDate?.toISOString?.() ?? new Date(pubDate).toISOString(),
+  dateModified: updatedDate
+    ? new Date(updatedDate).toISOString()
+    : (pubDate?.toISOString?.() ?? new Date(pubDate).toISOString()),
+  ...(ogImageUrl ? { image: [ogImageUrl] } : {}),
+  ...(tags && tags.length > 0 ? { keywords: tags.join(", ") } : {}),
+  mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl.toString() },
+  url: pageUrl.toString(),
+  author: {
+    "@type": "Person",
+    name: "GuCarpenter",
+    url: "https://github.com/GuCarpenter",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "GuCarpenter's Cabin",
+    logo: {
+      "@type": "ImageObject",
+      url: new URL("/favicon.svg", Astro.site).toString(),
+    },
+  },
+};
 
 const displayCategory = category
   ? category.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())
@@ -43,7 +80,14 @@ const tocHeadings = headings
   type="post"
   lang={lang}
   alternateUrl={alternateUrl}
+  ogImagePath={ogImagePath}
 >
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+    slot="head"
+  ></script>
   <!-- Sidebar Slot: Table of Contents -->
   <div
     slot="sidebar"
@@ -67,7 +111,7 @@ const tocHeadings = headings
   </div>
 
   <!-- Main Content -->
-  <article>
+  <article data-pagefind-body>
     <header class="mb-10">
       <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-4">
         <FormattedDate date={pubDate} lang={lang} />
@@ -79,7 +123,7 @@ const tocHeadings = headings
         )}
         <span>•</span>
         <a
-          href={`${blogHref}?topic=${category || ""}`}
+          href={`${blogHref}/topics/${category || ""}`}
           class="text-sky-600 dark:text-sky-400 font-medium hover:underline"
         >
           {displayCategory}
@@ -96,7 +140,7 @@ const tocHeadings = headings
         <div class="flex flex-wrap gap-2 mb-8">
           {tags.map((tag: string) => (
             <a
-              href={`${blogHref}?topic=${tag}`}
+              href={`${blogHref}/topics/${tag}`}
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
             >
               {tag}
@@ -116,7 +160,10 @@ const tocHeadings = headings
     </header>
 
     {tocHeadings.length > 0 && (
-      <details class="lg:hidden mb-10 bg-slate-50 dark:bg-dark-surface p-4 rounded-xl border border-slate-200 dark:border-dark-border group">
+      <details
+        class="lg:hidden mb-10 bg-slate-50 dark:bg-dark-surface p-4 rounded-xl border border-slate-200 dark:border-dark-border group"
+        data-pagefind-ignore
+      >
         <summary class="font-bold text-slate-900 dark:text-slate-100 cursor-pointer flex items-center justify-between list-none">
           <span class="flex items-center gap-2">
             <i class="fas fa-list-ul text-sky-500" />
@@ -144,7 +191,7 @@ const tocHeadings = headings
     </div>
 
     <!-- Back to Top -->
-    <div class="mt-12 flex justify-center">
+    <div class="mt-12 flex justify-center" data-pagefind-ignore>
       <button
         onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
         class="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 transition-colors"
@@ -155,7 +202,10 @@ const tocHeadings = headings
     </div>
 
     <!-- Post Navigation -->
-    <div class="mt-12 pt-12 border-t border-gray-100 dark:border-dark-border grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div
+      class="mt-12 pt-12 border-t border-gray-100 dark:border-dark-border grid grid-cols-1 sm:grid-cols-2 gap-6"
+      data-pagefind-ignore
+    >
       {prevPost ? (
         <a
           href={prevPost.slug}
@@ -189,6 +239,7 @@ const tocHeadings = headings
     <section
       id="giscus-container"
       class="mt-16 pt-10 border-t border-gray-100 dark:border-dark-border"
+      data-pagefind-ignore
     ></section>
 
     <script is:inline>

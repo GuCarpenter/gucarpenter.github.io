@@ -37,6 +37,9 @@ export const ui = {
     "blog.next": "Next",
     "blog.readingTime": "min read",
 
+    "topic.post": "post",
+    "topic.posts": "posts",
+
     "projects.title": "Projects | GuCarpenter",
     "projects.heading": "Projects",
     "projects.subtitle":
@@ -104,6 +107,9 @@ export const ui = {
     "blog.prev": "上一页",
     "blog.next": "下一页",
     "blog.readingTime": "分钟阅读",
+
+    "topic.post": "篇文章",
+    "topic.posts": "篇文章",
 
     "projects.title": "项目 | 顾木匠",
     "projects.heading": "项目展示",

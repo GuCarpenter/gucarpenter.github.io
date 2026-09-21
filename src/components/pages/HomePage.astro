@@ -57,7 +57,7 @@ const categoryName = (id: string) =>
               <FormattedDate date={post.data.pubDate} lang={lang} />
               <span>•</span>
               <a
-                href={`${blogHref}?topic=${category}`}
+                href={`${blogHref}/topics/${category}`}
                 class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
               >
                 {categoryName(post.id)}
@@ -82,7 +82,7 @@ const categoryName = (id: string) =>
               <div class="flex gap-2 pt-2 z-10 relative">
                 {post.data.tags.map((tag) => (
                   <a
-                    href={`${blogHref}?topic=${tag}`}
+                    href={`${blogHref}/topics/${tag}`}
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
                   >
                     {tag}

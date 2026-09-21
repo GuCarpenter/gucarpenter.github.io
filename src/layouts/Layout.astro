@@ -5,7 +5,6 @@ import Footer from "../components/Footer.astro";
 import Topics from "../components/Topics.astro";
 import AboutWidget from "../components/AboutWidget.astro";
 import { getAlternatePath, type Lang } from "../i18n/utils";
-
 interface Props {
   title: string;
   description?: string;
@@ -15,6 +14,8 @@ interface Props {
   // Explicit URL for the equivalent page in the other language.
   // Falls back to toggling the locale prefix on the current path.
   alternateUrl?: string;
+  // Optional path to a generated Open Graph image (e.g. `/og/<id>.png`).
+  ogImagePath?: string;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   lang,
   type = "page",
   alternateUrl,
+  ogImagePath,
 } = Astro.props;
 
 const otherLangUrl = alternateUrl ?? getAlternatePath(Astro.url.pathname, lang);
@@ -36,7 +38,9 @@ const otherLangUrl = alternateUrl ?? getAlternatePath(Astro.url.pathname, lang);
       description={description}
       lang={lang}
       alternateUrl={otherLangUrl}
+      ogImagePath={ogImagePath}
     />
+    <slot name="head" />
   </head>
   <body class="bg-white text-slate-900 dark:bg-dark dark:text-slate-200 transition-colors duration-300 flex flex-col min-h-screen font-sans">
     <Header lang={lang} alternateUrl={otherLangUrl} />
