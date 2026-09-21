@@ -1,0 +1,33 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="404 · Page Not Found" lang="en">
+  <section class="py-20 text-center flex flex-col items-center">
+    <p class="text-7xl font-extrabold text-sky-500 mb-4">404</p>
+    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+      Page not found
+      <span class="block text-xl text-slate-500 dark:text-slate-400 mt-1">
+        页面未找到
+      </span>
+    </h1>
+    <p class="text-slate-600 dark:text-slate-300 max-w-md mb-8">
+      The page you are looking for doesn't exist or has been moved.
+      <span class="block mt-1">你访问的页面不存在或已被移动。</span>
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a
+        href="/"
+        class="px-5 py-2.5 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition-colors"
+      >
+        Home / 首页
+      </a>
+      <a
+        href="/blog"
+        class="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-dark-border text-slate-700 dark:text-slate-300 font-medium hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+      >
+        Blog / 博客
+      </a>
+    </div>
+  </section>
+</Layout>

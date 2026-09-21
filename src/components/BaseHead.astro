@@ -4,6 +4,7 @@ import type { ImageMetadata } from "astro";
 import FallbackImage from "../assets/gu-icon.png";
 import { ClientRouter } from "astro:transitions";
 import type { Lang } from "../i18n/utils";
+import { GOATCOUNTER_CODE } from "../config";
 
 interface Props {
   title: string;
@@ -130,3 +131,24 @@ const ogImageURL = ogImagePath
     }
   });
 </script>
+
+{GOATCOUNTER_CODE && (
+  <>
+    <script
+      is:inline
+      data-goatcounter={`https://${GOATCOUNTER_CODE}.goatcounter.com/count`}
+      async
+      src="//gc.zgo.at/count.js"
+    ></script>
+    {/* Count client-side navigations (View Transitions) as page views. */}
+    <script is:inline>
+      {
+        `document.addEventListener("astro:page-load", () => {
+          if (window.goatcounter && window.goatcounter.count) {
+            window.goatcounter.count({ path: location.pathname + location.search });
+          }
+        });`;
+      }
+    </script>
+  </>
+)}

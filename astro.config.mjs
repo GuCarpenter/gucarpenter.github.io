@@ -8,12 +8,17 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { remarkModifiedTime } from "./src/utils/remarkModifiedTime.mjs";
 
 import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://gucarpenter.github.io",
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "viewport",
+  },
   i18n: {
     locales: ["en", "zh"],
     defaultLocale: "en",
@@ -23,7 +28,7 @@ export default defineConfig({
   },
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkMath],
+      remarkPlugins: [remarkMath, remarkModifiedTime],
       rehypePlugins: [
         [rehypeKatex, { output: "mathml" }],
         rehypeSlug,

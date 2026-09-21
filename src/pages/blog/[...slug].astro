@@ -49,7 +49,7 @@ type Props = CollectionEntry<"blog"> & {
 };
 
 const { alternateUrl, prevPost, nextPost, ...post } = Astro.props;
-const { Content, headings } = await render(post);
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
 
 const category = post.id.includes("/") ? post.id.split("/")[0] : null;
 ---
@@ -64,6 +64,7 @@ const category = post.id.includes("/") ? post.id.split("/")[0] : null;
   category={category}
   prevPost={prevPost}
   nextPost={nextPost}
+  lastModified={remarkPluginFrontmatter.lastModified}
 >
   <Content />
 </BlogPost>

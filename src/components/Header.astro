@@ -199,6 +199,15 @@ const aboutHref = localizePath("/about", lang);
       once: true,
     });
 
+    // Enter jumps to the full search results page with the query prefilled.
+    searchInput?.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const query = searchInput.value.trim();
+      if (query.length < 1) return;
+      const base = currentLang === "zh" ? "/zh/search" : "/search";
+      window.location.href = `${base}?q=${encodeURIComponent(query)}`;
+    });
+
     let debounce: ReturnType<typeof setTimeout>;
     searchInput?.addEventListener("input", () => {
       clearTimeout(debounce);

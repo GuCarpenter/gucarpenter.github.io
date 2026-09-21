@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
 import { useTranslations, type Lang } from "../../i18n/utils";
 
 interface Props {
@@ -8,6 +9,25 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+const all = await getCollection("projects");
+const projects = all
+  .filter((p) => p.data.lang === lang)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const statusLabel = (status: string) =>
+  status === "wip"
+    ? t("projects.status.wip")
+    : status === "archived"
+      ? t("projects.status.archived")
+      : t("projects.active");
+
+const statusColor = (status: string) =>
+  status === "archived"
+    ? "bg-slate-400"
+    : status === "wip"
+      ? "bg-amber-500"
+      : "bg-green-500";
 ---
 
 <Layout title={t("projects.title")} lang={lang}>
@@ -21,75 +41,46 @@ const t = useTranslations(lang);
   </header>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- GuAIPC Project Card -->
-    <div
-      class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
-      data-repo="GuCarpenter/GuAIPC"
-    >
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
-          GuAIPC
-        </h3>
-        <div class="group relative flex items-center">
-          <span class="w-3 h-3 rounded-full bg-green-500 cursor-help"></span>
-          <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            {t("projects.active")}
+    {projects.map((project) => (
+      <div
+        class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
+        data-repo={project.data.repo}
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+            {project.data.name}
+          </h3>
+          <div class="group relative flex items-center">
+            <span
+              class:list={[
+                "w-3 h-3 rounded-full cursor-help",
+                statusColor(project.data.status),
+              ]}
+            />
+            <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              {statusLabel(project.data.status)}
+            </span>
+          </div>
+        </div>
+        <p class="text-slate-600 dark:text-slate-300 mb-4 flex-grow">
+          {project.data.description}
+        </p>
+        <div class="flex gap-3 mt-auto">
+          <a
+            href={project.data.url ?? `https://github.com/${project.data.repo}`}
+            target="_blank"
+            class="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
+          >
+            <i class="fab fa-github" />
+            {t("projects.viewGithub")}
+          </a>
+          <span class="star-count ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+            <i class="fas fa-star text-yellow-400" />
+            <span class="count">--</span>
           </span>
         </div>
       </div>
-      <p class="text-slate-600 dark:text-slate-300 mb-4 flex-grow">
-        {t("projects.guaipc.desc")}
-      </p>
-      <div class="flex gap-3 mt-auto">
-        <a
-          href="https://github.com/GuCarpenter/GuAIPC"
-          target="_blank"
-          class="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
-        >
-          <i class="fab fa-github"></i>
-          {t("projects.viewGithub")}
-        </a>
-        <span class="star-count ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-          <i class="fas fa-star text-yellow-400"></i>
-          <span class="count">--</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- Project Card -->
-    <div
-      class="bg-white dark:bg-dark-surface border border-gray-100 dark:border-dark-border rounded-2xl p-6 hover:shadow-lg transition-shadow flex flex-col h-full"
-      data-repo="GuCarpenter/gucarpenter.github.io"
-    >
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
-          {t("projects.blog.name")}
-        </h3>
-        <div class="group relative flex items-center">
-          <span class="w-3 h-3 rounded-full bg-green-500 cursor-help"></span>
-          <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            {t("projects.active")}
-          </span>
-        </div>
-      </div>
-      <p class="text-slate-600 dark:text-slate-300 mb-4 flex-grow">
-        {t("projects.blog.desc")}
-      </p>
-      <div class="flex gap-3 mt-auto">
-        <a
-          href="https://github.com/GuCarpenter/gucarpenter.github.io"
-          target="_blank"
-          class="inline-flex items-center gap-2 text-sky-600 dark:text-sky-400 font-medium hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
-        >
-          <i class="fab fa-github"></i>
-          {t("projects.viewGithub")}
-        </a>
-        <span class="star-count ml-auto text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
-          <i class="fas fa-star text-yellow-400"></i>
-          <span class="count">--</span>
-        </span>
-      </div>
-    </div>
+    ))}
   </div>
 
   <script>

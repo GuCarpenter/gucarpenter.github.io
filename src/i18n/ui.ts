@@ -20,6 +20,9 @@ export const ui = {
     "nav.langLabel": "Switch Language",
 
     "search.noResults": "No results found",
+    "search.title": "Search | GuCarpenter",
+    "search.heading": "Search",
+    "search.subtitle": "Search across all articles.",
 
     "home.title": "GuCarpenter | Home",
     "home.hero.heading": "Understand the World by Creating",
@@ -45,6 +48,8 @@ export const ui = {
     "projects.subtitle":
       "A collection of my open source tools, libraries, and experiments.",
     "projects.active": "Active Development",
+    "projects.status.wip": "Work in Progress",
+    "projects.status.archived": "Archived",
     "projects.viewGithub": "View on GitHub",
     "projects.guaipc.desc":
       "Building a dual-core CPU, TPU, and GPU on FPGA to learn computer architecture.",
@@ -91,6 +96,9 @@ export const ui = {
     "nav.langLabel": "切换语言",
 
     "search.noResults": "未找到结果",
+    "search.title": "搜索 | 顾木匠",
+    "search.heading": "搜索",
+    "search.subtitle": "搜索全站文章。",
 
     "home.title": "顾木匠 | 首页",
     "home.hero.heading": "通过创造理解世界",
@@ -115,6 +123,8 @@ export const ui = {
     "projects.heading": "项目展示",
     "projects.subtitle": "我的一些开源工具、库和实验性项目的集合。",
     "projects.active": "积极开发中",
+    "projects.status.wip": "开发中",
+    "projects.status.archived": "已归档",
     "projects.viewGithub": "查看 GitHub",
     "projects.guaipc.desc":
       "在 FPGA 上构建双核 CPU、TPU 和 GPU 以学习计算机架构。",

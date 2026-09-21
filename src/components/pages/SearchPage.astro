@@ -1,0 +1,90 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { useTranslations, type Lang } from "../../i18n/utils";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<Layout title={t("search.title")} lang={lang}>
+  <header class="mb-8">
+    <h1 class="text-4xl font-extrabold tracking-tight mb-2 text-slate-900 dark:text-slate-100">
+      {t("search.heading")}
+    </h1>
+    <p class="text-slate-500 dark:text-slate-400">{t("search.subtitle")}</p>
+  </header>
+
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  <div id="search" data-lang={lang}></div>
+
+  <script>
+    function initSearchPage() {
+      const el = document.getElementById("search");
+      if (!el || el.dataset.initialized === "true") return;
+
+      const lang = el.dataset.lang === "zh" ? "zh" : "en";
+      const translations =
+        lang === "zh"
+          ? {
+              placeholder: "搜索文章…",
+              clear_search: "清除",
+              load_more: "加载更多结果",
+              search_label: "搜索本站",
+              zero_results: "未找到与 [SEARCH_TERM] 相关的结果",
+              many_results: "找到 [COUNT] 条与 [SEARCH_TERM] 相关的结果",
+              one_result: "找到 [COUNT] 条与 [SEARCH_TERM] 相关的结果",
+            }
+          : undefined;
+
+      // pagefind-ui.js is generated into /pagefind/ at build time and exposes a
+      // global PagefindUI. Loaded via a script tag (not import) so Vite leaves
+      // it alone. Not available during `astro dev`.
+      const start = () => {
+        // @ts-ignore - injected global
+        if (typeof window.PagefindUI === "undefined") return;
+        // @ts-ignore
+        new window.PagefindUI({
+          element: "#search",
+          showSubResults: true,
+          showImages: false,
+          translations,
+        });
+        el.dataset.initialized = "true";
+
+        // Prefill from ?q= (set by the header search box on Enter).
+        const q = new URLSearchParams(window.location.search).get("q");
+        if (q) {
+          const input = el.querySelector(
+            ".pagefind-ui__search-input",
+          ) as HTMLInputElement | null;
+          if (input) {
+            input.value = q;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.focus();
+          }
+        }
+      };
+
+      // @ts-ignore
+      if (typeof window.PagefindUI !== "undefined") {
+        start();
+      } else if (!document.getElementById("pagefind-ui-script")) {
+        const script = document.createElement("script");
+        script.id = "pagefind-ui-script";
+        script.src = "/pagefind/pagefind-ui.js";
+        script.onload = start;
+        document.head.appendChild(script);
+      } else {
+        document
+          .getElementById("pagefind-ui-script")
+          ?.addEventListener("load", start);
+      }
+    }
+
+    document.addEventListener("astro:page-load", initSearchPage);
+  </script>
+</Layout>

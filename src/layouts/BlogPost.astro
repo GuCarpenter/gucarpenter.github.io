@@ -1,6 +1,7 @@
 ---
 import Layout from "./Layout.astro";
 import FormattedDate from "../components/FormattedDate.astro";
+import { Image } from "astro:assets";
 import { calculateReadingTime } from "../utils/readingTime";
 import { useTranslations, localizePath, type Lang } from "../i18n/utils";
 
@@ -18,6 +19,7 @@ const {
   prevPost,
   nextPost,
   id,
+  lastModified,
 } = Astro.props;
 
 const lang = (Astro.props.lang ?? "en") as Lang;
@@ -27,6 +29,14 @@ const blogHref = localizePath("/blog", lang);
 const readingTime = body ? calculateReadingTime(body) : 1;
 
 const ogImagePath = id ? `/og/${id}.png` : undefined;
+
+// Prefer an explicit updatedDate; otherwise fall back to the git-derived
+// last-modified timestamp injected by the remarkModifiedTime plugin.
+const modifiedDate = updatedDate
+  ? new Date(updatedDate)
+  : lastModified
+    ? new Date(lastModified)
+    : null;
 
 const pageUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = ogImagePath
@@ -40,8 +50,8 @@ const jsonLd = {
   description,
   inLanguage: lang === "zh" ? "zh-CN" : "en",
   datePublished: pubDate?.toISOString?.() ?? new Date(pubDate).toISOString(),
-  dateModified: updatedDate
-    ? new Date(updatedDate).toISOString()
+  dateModified: modifiedDate
+    ? modifiedDate.toISOString()
     : (pubDate?.toISOString?.() ?? new Date(pubDate).toISOString()),
   ...(ogImageUrl ? { image: [ogImageUrl] } : {}),
   ...(tags && tags.length > 0 ? { keywords: tags.join(", ") } : {}),
@@ -110,15 +120,23 @@ const tocHeadings = headings
     </nav>
   </div>
 
+  <!-- Reading progress bar -->
+  <div
+    id="reading-progress"
+    class="fixed top-0 left-0 h-1 bg-sky-500 z-[60] transition-[width] duration-75"
+    style="width:0"
+    data-pagefind-ignore
+  ></div>
+
   <!-- Main Content -->
   <article data-pagefind-body>
     <header class="mb-10">
       <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-4">
         <FormattedDate date={pubDate} lang={lang} />
-        {updatedDate && (
+        {modifiedDate && (
           <div class="last-updated-on">
             {t("post.lastUpdated")}{" "}
-            <FormattedDate date={updatedDate} lang={lang} />
+            <FormattedDate date={modifiedDate} lang={lang} />
           </div>
         )}
         <span>•</span>
@@ -149,11 +167,12 @@ const tocHeadings = headings
         </div>
       )}
       {heroImage && (
-        <img
+        <Image
+          src={heroImage}
           width={1020}
           height={510}
-          src={heroImage.src}
-          alt=""
+          alt={title}
+          loading="eager"
           class="rounded-2xl shadow-lg mb-8"
         />
       )}
@@ -298,4 +317,69 @@ const tocHeadings = headings
       document.addEventListener("astro:page-load", loadGiscus);
     </script>
   </article>
+
+  <script>
+    function initReadingAids() {
+      const bar = document.getElementById("reading-progress");
+      const article = document.querySelector("article");
+
+      // Reading progress bar
+      const onScroll = () => {
+        if (!bar || !article) return;
+        const articleTop = article.offsetTop;
+        const scrollable =
+          article.offsetHeight - (window.innerHeight - articleTop);
+        const scrolled = window.scrollY - articleTop;
+        const pct = Math.min(
+          100,
+          Math.max(0, (scrolled / Math.max(1, scrollable)) * 100),
+        );
+        bar.style.width = pct + "%";
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      // TOC scrollspy
+      const tocLinks = Array.from(
+        document.querySelectorAll('nav a[href^="#"]'),
+      ) as HTMLAnchorElement[];
+      const active = "text-sky-500";
+      const map = new Map<string, HTMLAnchorElement[]>();
+      for (const link of tocLinks) {
+        const id = decodeURIComponent(link.hash.slice(1));
+        if (!id) continue;
+        if (!map.has(id)) map.set(id, []);
+        map.get(id)!.push(link);
+      }
+
+      const headings = [...map.keys()]
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => Boolean(el));
+
+      if (headings.length === 0) return;
+
+      let currentId: string | null = null;
+      const setActive = (id: string) => {
+        if (id === currentId) return;
+        currentId = id;
+        tocLinks.forEach((l) => l.classList.remove(active));
+        map.get(id)?.forEach((l) => l.classList.add(active));
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort(
+              (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+            );
+          if (visible[0]?.target?.id) setActive(visible[0].target.id);
+        },
+        { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
+      );
+      headings.forEach((h) => observer.observe(h));
+    }
+
+    document.addEventListener("astro:page-load", initReadingAids);
+  </script>
 </Layout>
