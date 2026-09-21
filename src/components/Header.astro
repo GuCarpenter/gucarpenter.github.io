@@ -1,80 +1,82 @@
 ---
-import HeaderLink from './HeaderLink.astro';
-import guIcon from '../assets/gu-icon.png';
-import { Image } from 'astro:assets';
+import HeaderLink from "./HeaderLink.astro";
+import guIcon from "../assets/gu-icon.png";
+import { Image } from "astro:assets";
+import { useTranslations, localizePath, type Lang } from "../i18n/utils";
 
 interface Props {
-    translatedSlug?: string | null;
+  lang: Lang;
+  alternateUrl: string;
 }
 
-const { translatedSlug } = Astro.props;
+const { lang, alternateUrl } = Astro.props;
+const t = useTranslations(lang);
+
+const homeHref = localizePath("/", lang);
+const blogHref = localizePath("/blog", lang);
+const projectsHref = localizePath("/projects", lang);
+const aboutHref = localizePath("/about", lang);
 ---
 
 <header class="sticky top-0 z-50 bg-white/90 dark:bg-dark/90 backdrop-blur-md border-b border-gray-100 dark:border-dark-border">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
-            <a href="/" class="flex-shrink-0 flex items-center gap-4 group">
-                <Image src={guIcon} alt="Logo" class="w-10 h-10 rounded-md transition-transform group-hover:scale-105" />
-                <span class="font-bold text-2xl tracking-tight group-hover:text-primary transition-colors text-slate-900 dark:text-slate-100">
-
-          <span class="lang-en-only">GuCarpenter's Cabin</span>
-          <span class="lang-zh-only">顾木匠的小屋</span>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-20">
+      <a href={homeHref} class="flex-shrink-0 flex items-center gap-4 group">
+        <Image
+          src={guIcon}
+          alt="Logo"
+          class="w-10 h-10 rounded-md transition-transform group-hover:scale-105"
+        />
+        <span class="font-bold text-2xl tracking-tight group-hover:text-primary transition-colors text-slate-900 dark:text-slate-100">
+          {t("site.title")}
         </span>
       </a>
 
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center space-x-6">
         <HeaderLink
-          href="/blog"
+          href={blogHref}
           class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
         >
-          <span class="lang-en-only">Blogs</span>
-          <span class="lang-zh-only">博客</span>
+          {t("nav.blogs")}
         </HeaderLink>
         <HeaderLink
-          href="/projects"
+          href={projectsHref}
           class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
         >
-          <span class="lang-en-only">Projects</span>
-          <span class="lang-zh-only">项目</span>
+          {t("nav.projects")}
         </HeaderLink>
         <HeaderLink
-          href="/about"
+          href={aboutHref}
           class="nav-item text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
         >
-          <span class="lang-en-only">About</span>
-          <span class="lang-zh-only">关于</span>
+          {t("nav.about")}
         </HeaderLink>
 
         <div class="relative group" id="search-container">
-          <i
-            class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"
-          ></i>
+          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
           <input
             id="search-input"
             type="text"
-            placeholder="Search..."
+            placeholder={t("nav.search.placeholder")}
             class="pl-8 pr-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border-none text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-dark-surface w-40 focus:w-60 transition-all duration-300 placeholder-slate-400"
             autocomplete="off"
           />
           <div
             id="search-results"
             class="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-dark-surface rounded-xl shadow-xl border border-gray-100 dark:border-dark-border overflow-hidden hidden z-50 max-h-96 overflow-y-auto"
-          >
-          </div>
+          ></div>
         </div>
 
         <div class="h-6 w-px bg-gray-200 dark:bg-slate-700 mx-2"></div>
         <div class="flex items-center space-x-1">
-          <button
-            id="lang-toggle"
+          <a
+            href={alternateUrl}
             class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors font-medium text-sm"
-            aria-label="Switch Language"
-            data-translated-slug={translatedSlug}
+            aria-label={t("nav.langLabel")}
           >
-            <span class="lang-en-only">中</span>
-            <span class="lang-zh-only">EN</span>
-          </button>
+            {t("nav.switchLang")}
+          </a>
           <button
             id="theme-toggle"
             class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors"
@@ -104,52 +106,47 @@ const { translatedSlug } = Astro.props;
   >
     <div class="px-4 py-4 space-y-4">
       <HeaderLink
-        href="/blog"
+        href={blogHref}
         class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
       >
-        <span class="lang-en-only">Blogs</span>
-        <span class="lang-zh-only">博客</span>
+        {t("nav.blogs")}
       </HeaderLink>
       <HeaderLink
-        href="/projects"
+        href={projectsHref}
         class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
       >
-        <span class="lang-en-only">Projects</span>
-        <span class="lang-zh-only">项目</span>
+        {t("nav.projects")}
       </HeaderLink>
       <HeaderLink
-        href="/about"
+        href={aboutHref}
         class="block text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium"
       >
-        <span class="lang-en-only">About</span>
-        <span class="lang-zh-only">关于</span>
+        {t("nav.about")}
       </HeaderLink>
 
       <div class="border-t border-gray-100 dark:border-dark-border pt-4 flex items-center justify-between">
-         <button
-            id="mobile-lang-toggle"
-            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors font-medium text-sm flex items-center gap-2"
-             aria-label="Switch Language"
-             data-translated-slug={translatedSlug}
-          >
-             <i class="fas fa-language text-lg"></i>
-            <span class="lang-en-only">中文</span>
-            <span class="lang-zh-only">English</span>
-          </button>
-          
-          <button
-            id="mobile-theme-toggle"
-             class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors flex items-center gap-2"
-          >
-            <div class="dark:hidden flex items-center gap-2">
-                 <i class="far fa-moon"></i>
-                 <span>Dark Mode</span>
-            </div>
-             <div class="hidden dark:flex items-center gap-2">
-                 <i class="far fa-sun"></i>
-                 <span>Light Mode</span>
-            </div>
-          </button>
+        <a
+          href={alternateUrl}
+          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors font-medium text-sm flex items-center gap-2"
+          aria-label={t("nav.langLabel")}
+        >
+          <i class="fas fa-language text-lg"></i>
+          {t("nav.switchLang.mobile")}
+        </a>
+
+        <button
+          id="mobile-theme-toggle"
+          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 focus:outline-none transition-colors flex items-center gap-2"
+        >
+          <div class="dark:hidden flex items-center gap-2">
+            <i class="far fa-moon"></i>
+            <span>Dark Mode</span>
+          </div>
+          <div class="hidden dark:flex items-center gap-2">
+            <i class="far fa-sun"></i>
+            <span>Light Mode</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -175,34 +172,14 @@ const { translatedSlug } = Astro.props;
     .catch(console.error);
 
   function initHeader() {
+    const currentLang = document.documentElement.lang === "zh" ? "zh" : "en";
     const searchInput = document.getElementById(
       "search-input",
     ) as HTMLInputElement;
     const searchResults = document.getElementById("search-results");
 
-    function updatePlaceholder() {
-      const isZh = document.documentElement.classList.contains("lang-zh");
-      if (searchInput) {
-        searchInput.placeholder = isZh ? "搜索文章..." : "Search posts...";
-      }
-    }
-
-    // Update placeholder on load and language toggle
-    updatePlaceholder();
-    // Observe language changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          updatePlaceholder();
-        }
-      });
-    });
-    observer.observe(document.documentElement, { attributes: true });
-
     searchInput?.addEventListener("input", () => {
       const query = searchInput.value.toLowerCase();
-      const isZh = document.documentElement.classList.contains("lang-zh");
-      const currentLang = isZh ? "zh" : "en";
 
       if (query.length < 2) {
         searchResults?.classList.add("hidden");
@@ -239,7 +216,7 @@ const { translatedSlug } = Astro.props;
         if (searchResults) {
           searchResults.innerHTML = `
                   <div class="p-4 text-sm text-slate-500 dark:text-slate-400 text-center">
-                      ${isZh ? "未找到结果" : "No results found"}
+                      ${currentLang === "zh" ? "未找到结果" : "No results found"}
                   </div>
               `;
           searchResults.classList.remove("hidden");
@@ -261,58 +238,33 @@ const { translatedSlug } = Astro.props;
     const mobileMenu = document.getElementById("mobile-menu");
 
     mobileMenuBtn?.addEventListener("click", () => {
-        mobileMenu?.classList.toggle("hidden");
-        const icon = mobileMenuBtn.querySelector("i");
-        if (mobileMenu?.classList.contains("hidden")) {
-            icon?.classList.remove("fa-times");
-            icon?.classList.add("fa-bars");
-        } else {
-            icon?.classList.remove("fa-bars");
-            icon?.classList.add("fa-times");
-        }
+      mobileMenu?.classList.toggle("hidden");
+      const icon = mobileMenuBtn.querySelector("i");
+      if (mobileMenu?.classList.contains("hidden")) {
+        icon?.classList.remove("fa-times");
+        icon?.classList.add("fa-bars");
+      } else {
+        icon?.classList.remove("fa-bars");
+        icon?.classList.add("fa-times");
+      }
     });
-
 
     function toggleTheme() {
-        document.documentElement.classList.toggle("dark");
-        localStorage.theme = document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light";
+      document.documentElement.classList.toggle("dark");
+      localStorage.theme = document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
     }
-
-    function toggleLanguage(slug?: string | null) {
-         // Toggle state
-        document.documentElement.classList.toggle("lang-zh");
-        const isZh = document.documentElement.classList.contains("lang-zh");
-        localStorage.lang = isZh ? "zh" : "en";
-
-        // Navigate if translated slug exists
-        if (slug) {
-            window.location.href = `/blog/${slug}/`;
-        }
-    }
-
 
     // Theme Toggle (Desktop)
-    document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
+    document
+      .getElementById("theme-toggle")
+      ?.addEventListener("click", toggleTheme);
 
     // Theme Toggle (Mobile)
-    document.getElementById("mobile-theme-toggle")?.addEventListener("click", toggleTheme);
-
-
-    // Language Toggle (Desktop)
-    const langToggleBtn = document.getElementById("lang-toggle");
-    langToggleBtn?.addEventListener("click", () => {
-         const translatedSlug = langToggleBtn.getAttribute("data-translated-slug");
-         toggleLanguage(translatedSlug);
-    });
-
-    // Language Toggle (Mobile)
-    const mobileLangToggleBtn = document.getElementById("mobile-lang-toggle");
-    mobileLangToggleBtn?.addEventListener("click", () => {
-         const translatedSlug = mobileLangToggleBtn.getAttribute("data-translated-slug");
-         toggleLanguage(translatedSlug);
-    });
+    document
+      .getElementById("mobile-theme-toggle")
+      ?.addEventListener("click", toggleTheme);
   }
 
   // Initialize on initial load and View Transitions navigation

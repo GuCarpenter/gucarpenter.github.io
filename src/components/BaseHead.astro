@@ -3,15 +3,26 @@ import "../styles/global.css";
 import type { ImageMetadata } from "astro";
 import FallbackImage from "../assets/gu-icon.png";
 import { ClientRouter } from "astro:transitions";
+import type { Lang } from "../i18n/utils";
 
 interface Props {
   title: string;
   description: string;
+  lang: Lang;
+  alternateUrl?: string;
   image?: ImageMetadata;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const { title, description, image = FallbackImage } = Astro.props;
+const {
+  title,
+  description,
+  lang,
+  alternateUrl,
+  image = FallbackImage,
+} = Astro.props;
+
+const rssHref = lang === "zh" ? "/zh/rss.xml" : "/rss.xml";
 ---
 
 <!-- Global Metadata -->
@@ -23,9 +34,23 @@ const { title, description, image = FallbackImage } = Astro.props;
   rel="alternate"
   type="application/rss+xml"
   title="GuCarpenter's Cabin"
-  href={new URL("rss.xml", Astro.site)}
+  href={new URL(rssHref, Astro.site)}
 />
 <meta name="generator" content={Astro.generator} />
+
+<!-- Language alternates (hreflang) -->
+{alternateUrl && (
+  <link
+    rel="alternate"
+    hreflang={lang === "zh" ? "en" : "zh"}
+    href={new URL(alternateUrl, Astro.site)}
+  />
+)}
+<link
+  rel="alternate"
+  hreflang={lang}
+  href={new URL(Astro.url.pathname, Astro.site)}
+/>
 
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,11 +61,16 @@ const { title, description, image = FallbackImage } = Astro.props;
 />
 
 <!-- FontAwesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
 
 <!-- Mermaid -->
-<script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
-
+<script
+  is:inline
+  src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"
+></script>
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
@@ -67,7 +97,7 @@ const { title, description, image = FallbackImage } = Astro.props;
 <!-- View Transitions -->
 <ClientRouter />
 
-<!-- Scripts: Init Theme & Lang -->
+<!-- Scripts: Init Theme -->
 <script is:inline>
   // Init Dark Mode
   if (
@@ -80,32 +110,18 @@ const { title, description, image = FallbackImage } = Astro.props;
     document.documentElement.classList.remove("dark");
   }
 
-    // Init Language
-    if (localStorage.lang === 'zh') {
-        document.documentElement.classList.add('lang-zh');
+  // Persist theme across View Transitions to prevent flicker
+  document.addEventListener("astro:before-swap", (ev) => {
+    const doc = ev.newDocument;
+    const theme = localStorage.theme;
+
+    if (
+      theme === "dark" ||
+      (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      doc.documentElement.classList.add("dark");
     } else {
-        document.documentElement.classList.remove('lang-zh');
+      doc.documentElement.classList.remove("dark");
     }
-
-    // Persist class state immediately before swap to prevent flicker
-    document.addEventListener('astro:before-swap', (ev) => {
-        const doc = ev.newDocument;
-        const theme = localStorage.theme;
-        const lang = localStorage.lang;
-
-        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            doc.documentElement.classList.add('dark');
-        } else {
-            doc.documentElement.classList.remove('dark');
-        }
-
-        if (lang === 'zh') {
-            doc.documentElement.classList.add('lang-zh');
-        } else {
-            doc.documentElement.classList.remove('lang-zh');
-        }
-    });
+  });
 </script>
-
-<!-- MathJax/KaTeX (Using native MathML via rehype-katex configuration) -->
-

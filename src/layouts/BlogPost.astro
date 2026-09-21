@@ -2,6 +2,7 @@
 import Layout from "./Layout.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import { calculateReadingTime } from "../utils/readingTime";
+import { useTranslations, localizePath, type Lang } from "../i18n/utils";
 
 const {
   title,
@@ -9,7 +10,7 @@ const {
   pubDate,
   updatedDate,
   heroImage,
-  translatedSlug,
+  alternateUrl,
   body,
   headings,
   tags,
@@ -17,18 +18,21 @@ const {
   prevPost,
   nextPost,
 } = Astro.props;
+
+const lang = (Astro.props.lang ?? "en") as Lang;
+const t = useTranslations(lang);
+const blogHref = localizePath("/blog", lang);
+
 const readingTime = body ? calculateReadingTime(body) : 1;
-const isZh = Astro.props.lang === "zh";
 
 const displayCategory = category
-  ? category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-  : isZh
-    ? "文章"
-    : "Article";
+  ? category.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())
+  : t("post.article");
 
 const tocHeadings = headings
   ? headings.filter(
-      (h) => h.depth <= 3 && !h.text.includes("$") && !h.text.includes("\\"),
+      (h: { depth: number; text: string; slug: string }) =>
+        h.depth <= 3 && !h.text.includes("$") && !h.text.includes("\\"),
     )
   : [];
 ---
@@ -37,7 +41,8 @@ const tocHeadings = headings
   title={title}
   description={description}
   type="post"
-  translatedSlug={translatedSlug}
+  lang={lang}
+  alternateUrl={alternateUrl}
 >
   <!-- Sidebar Slot: Table of Contents -->
   <div
@@ -48,102 +53,93 @@ const tocHeadings = headings
       {title}
     </h3>
     <nav class="space-y-3 text-sm">
-      {
-        tocHeadings.map((heading) => (
+      {tocHeadings.map(
+        (heading: { depth: number; text: string; slug: string }) => (
           <a
             href={`#${heading.slug}`}
             class={`block transition-colors hover:text-sky-500 text-slate-600 dark:text-slate-400 ${heading.depth === 3 ? "pl-4" : "font-medium"}`}
           >
             {heading.text}
           </a>
-        ))
-      }
+        ),
+      )}
     </nav>
   </div>
 
   <!-- Main Content -->
   <article>
     <header class="mb-10">
-      <div
-        class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-4"
-      >
-        <FormattedDate date={pubDate} />
-        {
-          updatedDate && (
-            <div class="last-updated-on">
-              Last updated on <FormattedDate date={updatedDate} />
-            </div>
-          )
-        }
+      <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <FormattedDate date={pubDate} lang={lang} />
+        {updatedDate && (
+          <div class="last-updated-on">
+            {t("post.lastUpdated")}{" "}
+            <FormattedDate date={updatedDate} lang={lang} />
+          </div>
+        )}
         <span>•</span>
         <a
-          href={`/blog?topic=${category || ""}`}
+          href={`${blogHref}?topic=${category || ""}`}
           class="text-sky-600 dark:text-sky-400 font-medium hover:underline"
         >
           {displayCategory}
         </a>
         <span>•</span>
-        <span>{readingTime} {isZh ? "分钟阅读" : "min read"}</span>
+        <span>
+          {readingTime} {t("blog.readingTime")}
+        </span>
       </div>
-      <h1
-        class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight"
-      >
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-6 leading-tight">
         {title}
       </h1>
-      {
-        tags && tags.length > 0 && (
-          <div class="flex flex-wrap gap-2 mb-8">
-            {tags.map((tag) => (
-              <a
-                href={`/blog?topic=${tag}`}
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
-              >
-                {tag}
-              </a>
-            ))}
-          </div>
-        )
-      }
-      {
-        heroImage && (
-          <img
-            width={1020}
-            height={510}
-            src={heroImage.src}
-            alt=""
-            class="rounded-2xl shadow-lg mb-8"
-          />
-        )
-      }
+      {tags && tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-8">
+          {tags.map((tag: string) => (
+            <a
+              href={`${blogHref}?topic=${tag}`}
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+            >
+              {tag}
+            </a>
+          ))}
+        </div>
+      )}
+      {heroImage && (
+        <img
+          width={1020}
+          height={510}
+          src={heroImage.src}
+          alt=""
+          class="rounded-2xl shadow-lg mb-8"
+        />
+      )}
     </header>
 
-    {
-      tocHeadings.length > 0 && (
-        <details class="lg:hidden mb-10 bg-slate-50 dark:bg-dark-surface p-4 rounded-xl border border-slate-200 dark:border-dark-border group">
-          <summary class="font-bold text-slate-900 dark:text-slate-100 cursor-pointer flex items-center justify-between list-none">
-            <span class="flex items-center gap-2">
-              <i class="fas fa-list-ul text-sky-500"></i>
-              {isZh ? "目录" : "Table of Contents"}
-            </span>
-            <i class="fas fa-chevron-down text-xs transition-transform group-open:rotate-180"></i>
-          </summary>
-          <nav class="mt-4 space-y-3 text-sm border-t border-slate-200 dark:border-dark-border pt-4">
-            {tocHeadings.map((heading) => (
+    {tocHeadings.length > 0 && (
+      <details class="lg:hidden mb-10 bg-slate-50 dark:bg-dark-surface p-4 rounded-xl border border-slate-200 dark:border-dark-border group">
+        <summary class="font-bold text-slate-900 dark:text-slate-100 cursor-pointer flex items-center justify-between list-none">
+          <span class="flex items-center gap-2">
+            <i class="fas fa-list-ul text-sky-500" />
+            {t("post.toc")}
+          </span>
+          <i class="fas fa-chevron-down text-xs transition-transform group-open:rotate-180" />
+        </summary>
+        <nav class="mt-4 space-y-3 text-sm border-t border-slate-200 dark:border-dark-border pt-4">
+          {tocHeadings.map(
+            (heading: { depth: number; text: string; slug: string }) => (
               <a
                 href={`#${heading.slug}`}
                 class={`block transition-colors hover:text-sky-500 text-slate-600 dark:text-slate-400 ${heading.depth === 3 ? "pl-4" : "font-medium"}`}
               >
                 {heading.text}
               </a>
-            ))}
-          </nav>
-        </details>
-      )
-    }
+            ),
+          )}
+        </nav>
+      </details>
+    )}
 
-    <div
-      class="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-sky-600 dark:prose-a:text-sky-400 hover:prose-a:text-sky-500"
-    >
+    <div class="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-sky-600 dark:prose-a:text-sky-400 hover:prose-a:text-sky-500">
       <slot />
     </div>
 
@@ -153,69 +149,73 @@ const tocHeadings = headings
         onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
         class="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400 transition-colors"
       >
-        <i
-          class="fas fa-arrow-up group-hover:-translate-y-1 transition-transform"
-        ></i>
-        Back to Top
+        <i class="fas fa-arrow-up group-hover:-translate-y-1 transition-transform"></i>
+        {t("post.backToTop")}
       </button>
     </div>
 
     <!-- Post Navigation -->
     <div class="mt-12 pt-12 border-t border-gray-100 dark:border-dark-border grid grid-cols-1 sm:grid-cols-2 gap-6">
-      {
-        prevPost ? (
-          <a href={prevPost.slug} class="group flex flex-col items-start gap-2 text-left p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-            <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
-              <i class="fas fa-arrow-left mr-1"></i> {isZh ? '上一篇' : 'Previous'}
-            </span>
-            <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
-              {prevPost.title}
-            </span>
-          </a>
-        ) : <div />
-      }
-      {
-        nextPost && (
-          <a href={nextPost.slug} class="group flex flex-col items-end gap-2 text-right p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-            <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
-              {isZh ? '下一篇' : 'Next'} <i class="fas fa-arrow-right ml-1"></i>
-            </span>
-            <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
-              {nextPost.title}
-            </span>
-          </a>
-        )
-      }
+      {prevPost ? (
+        <a
+          href={prevPost.slug}
+          class="group flex flex-col items-start gap-2 text-left p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+        >
+          <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
+            <i class="fas fa-arrow-left mr-1" /> {t("post.prev")}
+          </span>
+          <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+            {prevPost.title}
+          </span>
+        </a>
+      ) : (
+        <div />
+      )}
+      {nextPost && (
+        <a
+          href={nextPost.slug}
+          class="group flex flex-col items-end gap-2 text-right p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+        >
+          <span class="text-xs text-slate-400 font-medium uppercase tracking-wide group-hover:text-sky-500 transition-colors">
+            {t("post.next")} <i class="fas fa-arrow-right ml-1" />
+          </span>
+          <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+            {nextPost.title}
+          </span>
+        </a>
+      )}
     </div>
 
     <section
       id="giscus-container"
       class="mt-16 pt-10 border-t border-gray-100 dark:border-dark-border"
-    >
-    </section>
+    ></section>
 
     <script is:inline>
       function loadGiscus() {
-        const container = document.getElementById('giscus-container');
+        const container = document.getElementById("giscus-container");
         if (!container) return;
 
         // Clear existing content
-        container.innerHTML = '';
+        container.innerHTML = "";
 
-        const script = document.createElement('script');
-        script.src = 'https://giscus.app/client.js';
-        script.setAttribute('data-repo', 'GuCarpenter/gucarpenter.github.io');
-        script.setAttribute('data-repo-id', 'MDEwOlJlcG9zaXRvcnkzNjE3OTMxMA==');
-        script.setAttribute('data-category', 'Announcements');
-        script.setAttribute('data-category-id', 'DIC_kwDOAigNbs4C0s8x');
-        script.setAttribute('data-mapping', 'pathname');
-        script.setAttribute('data-strict', '0');
-        script.setAttribute('data-reactions-enabled', '1');
-        script.setAttribute('data-emit-metadata', '0');
-        script.setAttribute('data-input-position', 'bottom');
-        script.setAttribute('data-theme', 'preferred_color_scheme');
-        script.setAttribute('data-lang', document.documentElement.classList.contains('lang-zh') ? 'zh-CN' : 'en');
-        script.setAttribute('crossorigin', 'anonymous');
+        const script = document.createElement("script");
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "GuCarpenter/gucarpenter.github.io");
+        script.setAttribute("data-repo-id", "MDEwOlJlcG9zaXRvcnkzNjE3OTMxMA==");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOAigNbs4C0s8x");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "0");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "bottom");
+        script.setAttribute("data-theme", "preferred_color_scheme");
+        script.setAttribute(
+          "data-lang",
+          document.documentElement.lang === "zh" ? "zh-CN" : "en",
+        );
+        script.setAttribute("crossorigin", "anonymous");
         script.async = true;
 
         container.appendChild(script);
@@ -244,7 +244,7 @@ const tocHeadings = headings
       observer.observe(document.documentElement, { attributes: true });
 
       // Load on initial load and navigation
-      document.addEventListener('astro:page-load', loadGiscus);
+      document.addEventListener("astro:page-load", loadGiscus);
     </script>
   </article>
 </Layout>

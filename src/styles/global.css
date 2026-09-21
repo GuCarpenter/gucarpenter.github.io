@@ -4,37 +4,12 @@
 /* Enable class-based dark mode */
 @variant dark (&:where(.dark, .dark *));
 
-/* Language Switching Utilities */
-/* Default: Show EN, Hide ZH */
-.lang-zh-only {
-  display: none !important;
-}
-
-/* When html has .lang-zh: Hide EN, Show ZH */
-html.lang-zh .lang-en-only {
-  display: none !important;
-}
-
-html.lang-zh .lang-zh-only {
-  display: block !important; /* Force display for block elements */
-}
-html.lang-zh .grid.lang-zh-only {
-  display: grid !important;
-}
-html.lang-zh .flex.lang-zh-only {
-  display: flex !important;
-}
-html.lang-zh span.lang-zh-only {
-    display: inline !important; /* Force inline for spans */
-}
-
-
 @theme {
   --font-sans: "Noto Sans", "Noto Sans SC", sans-serif;
 
   --color-primary: #0ea5e9;
   --color-secondary: #38bdf8;
-  
+
   --color-dark: #020617;
   --color-dark-surface: #0f172a;
   --color-dark-border: #1e293b;
@@ -52,7 +27,9 @@ html.lang-zh span.lang-zh-only {
 
   body {
     @apply bg-white text-slate-900 dark:bg-dark dark:text-slate-200 transition-colors duration-300;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
@@ -62,7 +39,7 @@ html.lang-zh span.lang-zh-only {
   }
 
   .nav-item::after {
-    content: '';
+    content: "";
     @apply absolute bottom-0 left-0 w-0 h-0.5 bg-sky-500 transition-all duration-300;
   }
 
@@ -117,12 +94,18 @@ html.lang-zh span.lang-zh-only {
 /* Fix for KaTeX double rendering (Reverted) */
 
 /* Reset heading links style */
-.prose :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(:where([class~="not-prose"] *)) {
+.prose
+  :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(
+    :where([class~="not-prose"] *)
+  ) {
   color: inherit;
   text-decoration: none;
   font-weight: inherit;
 }
 
-.prose :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(:where([class~="not-prose"] *)):hover {
+.prose
+  :where(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a):not(
+    :where([class~="not-prose"] *)
+  ):hover {
   text-decoration: underline;
 }

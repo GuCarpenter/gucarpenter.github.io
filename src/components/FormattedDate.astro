@@ -1,26 +1,19 @@
 ---
+import type { Lang } from "../i18n/utils";
+
 interface Props {
-	date: Date;
+  date: Date;
+  lang: Lang;
 }
 
-const { date } = Astro.props;
+const { date, lang } = Astro.props;
+const locale = lang === "zh" ? "zh-cn" : "en-us";
+const options: Intl.DateTimeFormatOptions =
+  lang === "zh"
+    ? { year: "numeric", month: "long", day: "numeric" }
+    : { year: "numeric", month: "short", day: "numeric" };
 ---
 
-<time datetime={date.toISOString()} class="lang-en-only">
-	{
-		date.toLocaleDateString('en-us', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
-	}
-</time>
-<time datetime={date.toISOString()} class="lang-zh-only">
-	{
-		date.toLocaleDateString('zh-cn', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		})
-	}
+<time datetime={date.toISOString()}>
+  {date.toLocaleDateString(locale, options)}
 </time>

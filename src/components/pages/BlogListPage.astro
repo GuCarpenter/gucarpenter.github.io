@@ -1,0 +1,217 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import FormattedDate from "../FormattedDate.astro";
+import { calculateReadingTime } from "../../utils/readingTime";
+import {
+  useTranslations,
+  localizePath,
+  postUrl,
+  type Lang,
+} from "../../i18n/utils";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const blogHref = localizePath("/blog", lang);
+
+const allPosts = await getCollection("blog");
+const posts = allPosts
+  .filter((p) => p.data.lang === lang)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title={t("blog.title")} lang={lang}>
+  <header class="mb-10">
+    <h1 class="text-4xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-slate-100">
+      {t("blog.heading")}
+    </h1>
+  </header>
+
+  <div class="space-y-12" id="blog-posts-container">
+    <div
+      id="filter-info"
+      class="hidden mb-8 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl flex justify-between items-center text-sky-800 dark:text-sky-200"
+    >
+      <span>
+        {t("blog.filter.showing")}
+        <strong id="active-topic"></strong>
+      </span>
+      <a href={blogHref} class="text-sm font-bold underline">
+        {t("blog.filter.clear")}
+      </a>
+    </div>
+    {posts.map((post) => {
+      const category = post.id.includes("/") ? post.id.split("/")[0] : "";
+      const tags = post.data.tags || [];
+      const filterData = [category, ...tags]
+        .filter(Boolean)
+        .join(",")
+        .toLowerCase();
+
+      return (
+        <article
+          class="group relative flex flex-col space-y-4 post-item"
+          data-filter={filterData}
+        >
+          <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+            <FormattedDate date={post.data.pubDate} lang={lang} />
+            <span>•</span>
+            <a
+              href={`${blogHref}?topic=${category}`}
+              class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
+            >
+              {category
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase())}
+            </a>
+            <span>•</span>
+            <span>
+              {calculateReadingTime(post.body || "")} {t("blog.readingTime")}
+            </span>
+          </div>
+          <h3 class="text-2xl font-bold group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-slate-900 dark:text-slate-100">
+            <a
+              href={postUrl(post.id, lang)}
+              class="after:absolute after:inset-0"
+            >
+              {post.data.title}
+            </a>
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 line-clamp-3">
+            {post.data.description}
+          </p>
+          {post.data.tags && post.data.tags.length > 0 && (
+            <div class="flex gap-2 pt-2 z-10 relative">
+              {post.data.tags.map((tag) => (
+                <a
+                  href={`${blogHref}?topic=${tag}`}
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300 border border-sky-100 dark:border-sky-900/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors"
+                >
+                  {tag}
+                </a>
+              ))}
+            </div>
+          )}
+        </article>
+      );
+    })}
+  </div>
+
+  <!-- Pagination -->
+  <div class="mt-12 flex justify-center gap-4">
+    <button
+      id="prev-btn"
+      class="px-4 py-2 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:border-sky-500 dark:hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium transition-colors"
+    >
+      {t("blog.prev")}
+    </button>
+    <button
+      id="next-btn"
+      class="px-4 py-2 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border text-slate-700 dark:text-slate-300 hover:border-sky-500 dark:hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 font-medium transition-colors"
+    >
+      {t("blog.next")}
+    </button>
+  </div>
+
+  <script>
+    const PAGE_SIZE = 10;
+    let currentPage = 1;
+
+    function getPosts(): HTMLElement[] {
+      return Array.from(
+        document.querySelectorAll(".post-item"),
+      ) as HTMLElement[];
+    }
+
+    function getVisiblePosts(): HTMLElement[] {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topic = urlParams.get("topic")?.toLowerCase();
+      const posts = getPosts();
+      if (!topic) return posts;
+      return posts.filter((post) =>
+        (post.getAttribute("data-filter") || "").split(",").includes(topic),
+      );
+    }
+
+    function applyFilterAndPagination() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topic = urlParams.get("topic")?.toLowerCase();
+      const posts = getPosts();
+
+      const filterInfo = document.getElementById("filter-info");
+      const activeTopic = document.getElementById("active-topic");
+
+      const visiblePosts = getVisiblePosts();
+
+      if (topic) {
+        filterInfo?.classList.remove("hidden");
+        if (activeTopic) activeTopic.textContent = topic;
+      } else {
+        filterInfo?.classList.add("hidden");
+      }
+
+      const totalPages = Math.ceil(visiblePosts.length / PAGE_SIZE);
+      if (currentPage > totalPages) currentPage = 1;
+      if (totalPages === 0) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+
+      posts.forEach((p) => (p.style.display = "none"));
+      visiblePosts
+        .slice(startIndex, endIndex)
+        .forEach((p) => (p.style.display = "flex"));
+
+      const prevBtn = document.getElementById("prev-btn") as HTMLButtonElement;
+      const nextBtn = document.getElementById("next-btn") as HTMLButtonElement;
+
+      if (prevBtn) {
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.classList.toggle("opacity-50", currentPage === 1);
+        prevBtn.classList.toggle("cursor-not-allowed", currentPage === 1);
+      }
+      if (nextBtn) {
+        const atEnd = currentPage >= totalPages || totalPages === 0;
+        nextBtn.disabled = atEnd;
+        nextBtn.classList.toggle("opacity-50", atEnd);
+        nextBtn.classList.toggle("cursor-not-allowed", atEnd);
+      }
+    }
+
+    function initBlog() {
+      const prevBtn = document.getElementById("prev-btn");
+      const nextBtn = document.getElementById("next-btn");
+
+      prevBtn?.replaceWith(prevBtn.cloneNode(true));
+      nextBtn?.replaceWith(nextBtn.cloneNode(true));
+
+      document.getElementById("prev-btn")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage--;
+          applyFilterAndPagination();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+
+      document.getElementById("next-btn")?.addEventListener("click", () => {
+        const totalPages = Math.ceil(getVisiblePosts().length / PAGE_SIZE);
+        if (currentPage < totalPages) {
+          currentPage++;
+          applyFilterAndPagination();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+
+      applyFilterAndPagination();
+    }
+
+    document.addEventListener("astro:page-load", () => {
+      currentPage = 1;
+      initBlog();
+    });
+  </script>
+</Layout>

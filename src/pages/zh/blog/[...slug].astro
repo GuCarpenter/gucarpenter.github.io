@@ -1,23 +1,23 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import BlogPost from "../../layouts/BlogPost.astro";
-import { postSlug, localizePath } from "../../i18n/utils";
+import BlogPost from "../../../layouts/BlogPost.astro";
+import { postSlug, localizePath } from "../../../i18n/utils";
 
 export async function getStaticPaths() {
   const allPosts = await getCollection("blog");
-  const posts = allPosts.filter((p) => p.data.lang === "en");
+  const posts = allPosts.filter((p) => p.data.lang === "zh");
 
   const sortedPosts = posts.sort(
     (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
   );
 
   return sortedPosts.map((post) => {
-    // Alternate language: the matching `-zh` entry, if it exists.
-    const zhId = post.id + "-zh";
-    const hasZh = allPosts.some((p) => p.id === zhId);
-    const alternateUrl = hasZh
-      ? localizePath(`/blog/${postSlug(zhId)}/`, "zh")
-      : localizePath("/blog", "zh");
+    // Alternate language: the English entry (id without the `-zh` suffix).
+    const enId = post.id.replace(/-zh$/, "");
+    const hasEn = allPosts.some((p) => p.id === enId);
+    const alternateUrl = hasEn
+      ? localizePath(`/blog/${enId}/`, "en")
+      : localizePath("/blog", "en");
 
     const currentIndex = sortedPosts.findIndex((p) => p.id === post.id);
     const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
@@ -27,15 +27,21 @@ export async function getStaticPaths() {
         : null;
 
     return {
-      params: { slug: post.id },
+      params: { slug: postSlug(post.id) },
       props: {
         ...post,
         alternateUrl,
         prevPost: prevPost
-          ? { title: prevPost.data.title, slug: `/blog/${prevPost.id}/` }
+          ? {
+              title: prevPost.data.title,
+              slug: localizePath(`/blog/${postSlug(prevPost.id)}/`, "zh"),
+            }
           : null,
         nextPost: nextPost
-          ? { title: nextPost.data.title, slug: `/blog/${nextPost.id}/` }
+          ? {
+              title: nextPost.data.title,
+              slug: localizePath(`/blog/${postSlug(nextPost.id)}/`, "zh"),
+            }
           : null,
       },
     };
@@ -56,7 +62,7 @@ const category = post.id.includes("/") ? post.id.split("/")[0] : null;
 
 <BlogPost
   {...post.data}
-  lang="en"
+  lang="zh"
   body={post.body}
   alternateUrl={alternateUrl}
   headings={headings}
