@@ -15,7 +15,7 @@
     "@astrojs/sitemap": "^3.7.4",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.3.3",
+    "astro": "^7.4.12",
     "astro-og-canvas": "^0.13.2",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-katex": "^7.0.1",
