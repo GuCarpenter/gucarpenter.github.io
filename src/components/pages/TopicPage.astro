@@ -26,8 +26,7 @@ const posts = allPosts
   .filter((p) => {
     const category = p.id.includes("/") ? p.id.split("/")[0] : "";
     const tags = p.data.tags || [];
-    return [category, ...tags]
-      .filter(Boolean)
+    return [category, ...tags].filter(Boolean)
       .map((v) => v.toLowerCase())
       .includes(topicLower);
   })

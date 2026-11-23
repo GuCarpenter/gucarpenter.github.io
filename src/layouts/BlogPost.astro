@@ -140,12 +140,16 @@ const tocHeadings = headings
           </div>
         )}
         <span>•</span>
-        <a
-          href={`${blogHref}/topics/${category || ""}`}
-          class="text-sky-600 dark:text-sky-400 font-medium hover:underline"
-        >
-          {displayCategory}
-        </a>
+        {category ? (
+          <a
+            href={`${blogHref}/topics/${category}`}
+            class="text-sky-600 dark:text-sky-400 font-medium hover:underline"
+          >
+            {displayCategory}
+          </a>
+        ) : (
+          <span class="font-medium">{displayCategory}</span>
+        )}
         <span>•</span>
         <span>
           {readingTime} {t("blog.readingTime")}

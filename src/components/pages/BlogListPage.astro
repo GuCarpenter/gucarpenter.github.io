@@ -38,15 +38,19 @@ const posts = allPosts
         <article class="group relative flex flex-col space-y-4 post-item">
           <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
             <FormattedDate date={post.data.pubDate} lang={lang} />
-            <span>•</span>
-            <a
-              href={`${blogHref}/topics/${category}`}
-              class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
-            >
-              {category
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (l) => l.toUpperCase())}
-            </a>
+            {category && (
+              <>
+                <span>•</span>
+                <a
+                  href={`${blogHref}/topics/${category}`}
+                  class="text-sky-600 dark:text-sky-400 font-medium hover:underline z-10 relative"
+                >
+                  {category
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                </a>
+              </>
+            )}
             <span>•</span>
             <span>
               {calculateReadingTime(post.body || "")} {t("blog.readingTime")}
