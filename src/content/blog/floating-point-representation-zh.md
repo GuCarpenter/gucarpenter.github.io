@@ -2,7 +2,7 @@
 title: "浮点数的表示"
 description: "IEEE 754 如何用符号、指数、尾数三个字段编码一个数：五种格式的字段划分、四类编码、指数区间与 ulp。"
 pubDate: 2026-04-20
-updatedDate: 2026-11-23
+updatedDate: 2026-11-26
 tags:
   - floating-point
   - computer-architecture
@@ -28,7 +28,7 @@ $$
 - $M$ 是有效数字（significand），一个二进制小数；
 - $E$ 是指数，决定这个数被放大或缩小 $2^E$ 倍。
 
-比特位相应被切成三个字段：
+比特位相应被切成三个字段[^csapp-fmt]：
 
 | 字段     | 位数  | 作用                    |
 | ------ | --- | --------------------- |
@@ -40,7 +40,7 @@ $$
 
 *在 CSAPP Figure 2.32 的基础上表示的五种格式。指数域宽度决定动态范围，尾数域宽度决定有效精度；*
 
-每种格式对应的参数：
+每种格式对应的参数[^754-params]：
 
 | 格式   | 总位宽 | 指数位 $k$ | 尾数位 $n$ | Bias |
 | ---- | --- | ------- | ------- | ---- |
@@ -59,7 +59,7 @@ $$
 根据Bias的值以及exp本身的表示范围，我们可以知道$E$ 平移之后落在 $[1, 2^k-2]$ 范围，$exp = 0$ 与 $exp = 2^k-1$ 则预留给了其他特殊值。
 ## 浮点数的类别
 
-浮点数有多种类别，`exp` 字段的取值决定了其属于哪个类别。
+浮点数有多种类别，`exp` 字段的取值决定了其属于哪个类别。[^csapp-cat]
 
 ![Figure 2.33 单精度浮点数的四种编码类别](/images/floating-point-representation/csapp-fig2-33-floating-point-categories-zh.drawio-58b18e8324.svg)
 
@@ -81,20 +81,20 @@ $$
 
 ### 非规格化
 
-当 $e = 0$ 时，取 $E = 1 - \text{Bias}$，$M = f$，没有隐藏位。这类数常被称为非规格化数（denormal）；IEEE 754-2019 的正式术语是次正规数（subnormal），本文用更常见的前者，此外在IEEE中0不属于非规格化数，在这里合并讨论了。
+当 $e = 0$ 时，取 $E = 1 - \text{Bias}$，$M = f$，没有隐藏位。这类数常被称为非规格化数（denormal）；IEEE 754-2019 的正式术语是次正规数（subnormal），本文用更常见的前者，此外在IEEE中0不属于非规格化数，在这里合并讨论了。[^754-subnormal]
 
 非规格化数承担两件事：
 1. 表示 0（规格化数的 $M \ge 1$，无法编码 0）；
 2. 填满 0 与最小规格化数之间的空隙，避免数值突然掉到 0。
 
-注意非规格化数的$E$和$M$取值和规格化数都不一样。这里采用 $1-\text{Bias}$ 是一个值得注意的设计：它补偿了丢失的隐藏位，使最大的非规格化数与最小的规格化数间距相同。以 6 位玩具格式（$k=3, n=2$，Bias $=3$）为例，非规格化数的$E$是 $2^{1-3}=1/4$，$M$可取 $0,1/4,2/4,3/4$，所以最大的非规格化数是 $3/16$，最小的规格化数是 $4/16$，两者相邻且步长仍为 $1/16$——这就是**渐进下溢**（gradual underflow）的几何含义。对应的代价是有效位数随值的缩小而减少。$4/16$有3位有效数字，$3/16$有2位有效数字，$1/16$只有一位有效数字了。
+注意非规格化数的$E$和$M$取值和规格化数都不一样。这里采用 $1-\text{Bias}$ 是一个值得注意的设计：它补偿了丢失的隐藏位，使最大的非规格化数与最小的规格化数间距相同[^csapp-bias-aside]。以 6 位玩具格式（$k=3, n=2$，Bias $=3$）为例，非规格化数的$E$是 $2^{1-3}=1/4$，$M$可取 $0,1/4,2/4,3/4$，所以最大的非规格化数是 $3/16$，最小的规格化数是 $4/16$，两者相邻且步长仍为 $1/16$——这就是**渐进下溢**（gradual underflow）的几何含义[^csapp-gradual]。对应的代价是有效位数随值的缩小而减少。$4/16$有3位有效数字，$3/16$有2位有效数字，$1/16$只有一位有效数字了。
 
 ### 特殊值
 
 `exp` 全 1 时：
 
 - `frac = 0`：$\pm\infty$，表示上溢或除以零；
-- `frac ≠ 0`：NaN，表示 $\sqrt{-1}$、$\infty - \infty$、$0/0$ 这类无效运算。
+- `frac ≠ 0`：NaN，表示 $\sqrt{-1}$、$\infty - \infty$、$0/0$ 这类无效运算。[^754-enc]
 
 此外 $\pm 0$ 由"符号位 + 全 0"表示，二者在算术上相等，但在 $1/x$、`atan2`、符号提取等场景中会给出不同结果。
 
@@ -114,7 +114,7 @@ $$
 
 ### 上溢
 
-当结果的量级超过该格式的最大有限值，结果变成 $\pm\infty$（FP16 为 65504，即 $(2-2^{-10})\times 2^{15}$）。严格地说，略大于它但仍能舍入回这个最大值的数并未上溢——FP16 默认舍入下门槛是 65520，值由具体的舍入规则决定，本文不展开。
+当结果的量级超过该格式的最大有限值，结果变成 $\pm\infty$（FP16 为 65504，即 $(2-2^{-10})\times 2^{15}$）。严格地说，略大于它但仍能舍入回这个最大值的数并未上溢——FP16 默认舍入下门槛是 65520，值由具体的舍入规则决定，本文不展开。[^754-overflow]
 
 是否上溢主要由指数位决定，FP16的exp只有5位，而BF16有8位，对应的最大规格化值也更高，因此FP16更容易发生上溢。
 
@@ -161,7 +161,7 @@ $$
 \operatorname{ulp}(x) = 2^{E-n},
 $$
 
-它是绝对间距，在一个指数区间内恒定，随 $E$ 变化。相应的相对间距 $\operatorname{ulp}(x)/x$ 在 binade 内从低端的 $2^{-n}$ 降到高端的 $2^{-n-1}$，也就是说同一个格式的相对精度会在一个 binade 内摆动一个基数倍。Higham 称这种现象为精度摆动（wobbling precision）。
+它是绝对间距，在一个指数区间内恒定，随 $E$ 变化。相应的相对间距 $\operatorname{ulp}(x)/x$ 在 binade 内从低端的 $2^{-n}$ 降到高端的 $2^{-n-1}$，也就是说同一个格式的相对精度会在一个 binade 内摆动一个基数倍。Higham 称这种现象为精度摆动（wobbling precision）[^higham-wobble]。
 
 落到具体数值上：FP32 在 $x=1$ 附近最低有效位单位约为 $1.2\times10^{-7}$，在 $x=1024$ 附近 ulp 已经约为 $1.2\times10^{-4}$。同样是一个 $10^{-5}$ 的增量，加在 1 上还能改变结果，加在 1024 上就已经小于半个最低有效位单位。
 
@@ -193,7 +193,7 @@ $$
 
 ## 浮点数示例
 
-以 6 位玩具格式为例：$k=3$（指数 3 位）、$n=2$（尾数 2 位），Bias $= 2^{2}-1 = 3$。
+以 6 位玩具格式为例：$k=3$（指数 3 位）、$n=2$（尾数 2 位），Bias $= 2^{2}-1 = 3$。[^csapp-example]
 
 | 描述      | 位模式        | $E$  | $M$   | 值         |
 | ------- | ---------- | ---- | ----- | --------- |
@@ -235,13 +235,13 @@ FP32 一般作为精度标准，在部分精度敏感的算子中也会提升到
 
 TF32 是"$k=8$、$n=10$"的组合：指数域与 FP32 完全相同，尾数只有 10 位，因此**范围与 FP32 基本一致、精度与 FP16 一致**。这 10 位尾数同样省略隐含的前导 1，所以有效位数是 $t=11$，与 FP16 相同。
 
-TF32 在实现层面上只是一种 Tensor Core 的**计算模式**，而非独立的存储类型。内存里、其他算子中一切仍然是 FP32，只有卷积和矩阵乘在相乘前把输入舍入到 TF32，乘积精确保留，累加在 FP32 中完成。所以它与 FP32 的差别只出现在这两类运算的输入端，不改变任何存储格式。
+TF32 在实现层面上只是一种 Tensor Core 的**计算模式**，而非独立的存储类型。[^nvidia-tf32]内存里、其他算子中一切仍然是 FP32，只有卷积和矩阵乘在相乘前把输入舍入到 TF32，乘积精确保留，累加在 FP32 中完成。所以它与 FP32 的差别只出现在这两类运算的输入端，不改变任何存储格式。
 
 越来越多的倾向是在Tensor Core中直接使用BF16或者更低精度的浮点数进行计算，因此TF32也不是太流行了。
 
 ### BF16
 
-BF16 同样用 8 位指数，但尾数只有 7 位：$t=8$，范围和 FP32 完全相同。
+BF16 同样用 8 位指数，但尾数只有 7 位：$t=8$，范围和 FP32 完全相同。[^google-bf16]
 
 它的设计思路是把指数域给到 FP32 的宽度（8 位）、尾数尽量压减：因为指数域与 FP32 相同，溢出、下溢、NaN 的行为都和 FP32 基本对齐，代价是数值精度更低。
 
@@ -276,10 +276,15 @@ FP16混精训练常用损失缩放来减少小梯度在反向传播中下溢为�
 | FP16 | 10  | $9.5\times10^{-7}$            | $9.8\times10^{-4}$                 | $1$                        | 11  | 30    |
 | BF16 | 7   | $7.6\times10^{-6}$            | $7.8\times10^{-3}$                 | $8$                        | 8   | 254   |
 
-## 参考文献
-
-- Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., Section 2.4 "Floating Point", pp. 145–157.
-- Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., SIAM, Section 2.1 "Floating Point Number System" and Section 2.3 "IEEE Arithmetic", pp. 36–44.
-- IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, Clause 3.3 "Sets of floating-point data", Clause 3.4 "Binary interchange format encodings", Clause 3.6 "Interchange format parameters", pp. 18–24.
-- Shibo Wang and Pankaj Kanwar (2019), "BFloat16: The Secret to High Performance on Cloud TPUs", Google Cloud Blog.
-- Dusan Stosic (2021), "Accelerating AI Training with TF32 Tensor Cores", NVIDIA Technical Blog.
+[^csapp-fmt]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.2 "IEEE Floating-Point Representation", Figure 2.32, p. 149.
+[^754-params]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §3.6 "Interchange format parameters", Table 3.5, p. 23.
+[^csapp-cat]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, Figure 2.33 "Categories of single-precision floating-point values", p. 150.
+[^754-subnormal]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §2.1 "Definitions" (denormalized number: See subnormal number), p. 13.
+[^csapp-bias-aside]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, Aside "Why set the bias this way for denormalized values?", p. 150.
+[^csapp-gradual]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, "gradual underflow", p. 151.
+[^754-enc]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §3.4 "Binary interchange format encodings", p. 19.
+[^754-overflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
+[^higham-wobble]: Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.1 "Floating Point Number System" (wobbling precision), p. 36.
+[^csapp-example]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, Figure 2.34 "Representable values for 6-bit floating-point format", p. 151.
+[^nvidia-tf32]: Dusan Stosic (2021), "Accelerating AI Training with TF32 Tensor Cores", NVIDIA Technical Blog.
+[^google-bf16]: Shibo Wang and Pankaj Kanwar (2019), "BFloat16: The Secret to High Performance on Cloud TPUs", Google Cloud Blog, section "Bfloat16 semantics".

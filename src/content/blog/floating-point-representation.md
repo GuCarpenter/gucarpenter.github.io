@@ -2,7 +2,7 @@
 title: "Floating-Point Representation"
 description: "How IEEE 754 packs sign, exponent and fraction into one number: five formats, four encodings, binades and ulp."
 pubDate: 2026-04-20
-updatedDate: 2026-11-23
+updatedDate: 2026-11-26
 tags:
   - floating-point
   - computer-architecture
@@ -28,7 +28,7 @@ $$
 - $M$ is the significand, a binary fraction;
 - $E$ is the exponent, which scales the number by $2^E$.
 
-The bits are cut into three fields:
+The bits are cut into three fields:[^csapp-fmt]
 
 | Field  | Bits | Role |
 | ------ | --- | --- |
@@ -40,7 +40,7 @@ The bits are cut into three fields:
 
 *The five formats, drawn after CSAPP Figure 2.32. The exponent width sets the dynamic range; the fraction width sets the precision.*
 
-Parameters per format:
+Parameters per format:[^754-params]
 
 | Format | Total bits | Exponent bits $k$ | Fraction bits $n$ | Bias |
 | ---- | --- | ------- | ------- | ---- |
@@ -61,7 +61,7 @@ Given the bias and the range of `exp`, $E$ lands in $[1, 2^k-2]$ after the shift
 
 ## Classes of Floating-Point Numbers
 
-The value of `exp` decides which class a number belongs to.
+The value of `exp` decides which class a number belongs to.[^csapp-cat]
 
 ![Figure 2.33: the four encoding classes in single precision](/images/floating-point-representation/csapp-fig2-33-floating-point-categories.drawio-ef35c8145a.svg)
 
@@ -84,21 +84,21 @@ The next subsection exists to solve exactly those two problems.
 
 ### Denormalized
 
-When $e = 0$, the encoding takes $E = 1 - \text{Bias}$ and $M = f$, with no hidden bit. These are usually called denormalized numbers; IEEE 754-2019 prefers subnormal. This post uses the more common former term, and it also folds 0 into the class, although IEEE does not count 0 as denormalized.
+When $e = 0$, the encoding takes $E = 1 - \text{Bias}$ and $M = f$, with no hidden bit. These are usually called denormalized numbers; IEEE 754-2019 prefers subnormal. This post uses the more common former term, and it also folds 0 into the class, although IEEE does not count 0 as denormalized.[^754-subnormal]
 
 Denormalized numbers serve two purposes:
 
 1. Representing 0, which normalized form cannot encode since $M \ge 1$;
 2. Filling the gap between 0 and the smallest normalized number, so values do not fall off a cliff to 0.
 
-The choice $E = 1-\text{Bias}$ differs from the normalized case, and it is deliberate: it compensates for the lost hidden bit, making the step from the largest denormalized number to the smallest normalized number the same as every other step. Take the 6-bit toy format ($k=3$, $n=2$, Bias $=3$). Denormalized numbers use $E = 2^{1-3} = 1/4$ and $M \in \{0, 1/4, 2/4, 3/4\}$, so the largest is $3/16$ and the smallest normalized number is $4/16$: adjacent, with the same step of $1/16$. That is the geometric meaning of **gradual underflow**. The price is that the number of significant bits falls as values shrink: $4/16$ carries 3 significant bits, $3/16$ carries 2, and $1/16$ only 1.
+The choice $E = 1-\text{Bias}$ differs from the normalized case, and it is deliberate: it compensates for the lost hidden bit, making the step from the largest denormalized number to the smallest normalized number the same as every other step.[^csapp-bias-aside] Take the 6-bit toy format ($k=3$, $n=2$, Bias $=3$). Denormalized numbers use $E = 2^{1-3} = 1/4$ and $M \in \{0, 1/4, 2/4, 3/4\}$, so the largest is $3/16$ and the smallest normalized number is $4/16$: adjacent, with the same step of $1/16$. That is the geometric meaning of **gradual underflow**.[^csapp-gradual] The price is that the number of significant bits falls as values shrink: $4/16$ carries 3 significant bits, $3/16$ carries 2, and $1/16$ only 1.
 
 ### Special values
 
 With `exp` all ones:
 
 - `frac = 0`: $\pm\infty$, produced by overflow or division by zero;
-- `frac ≠ 0`: NaN, produced by undefined operations such as $\sqrt{-1}$, $\infty - \infty$ or $0/0$.
+- `frac ≠ 0`: NaN, produced by undefined operations such as $\sqrt{-1}$, $\infty - \infty$ or $0/0$.[^754-enc]
 
 $\pm 0$ is encoded as a sign bit plus all-zero fields. The two compare equal in arithmetic yet behave differently for $1/x$, for `atan2`, and for sign extraction.
 
@@ -119,7 +119,7 @@ All four extremes can be read off `exp` and `frac`.
 
 ### Overflow
 
-When a result exceeds the largest finite value of the format, it becomes $\pm\infty$ (65504 for FP16, that is $(2-2^{-10})\times 2^{15}$). Strictly, a value slightly above that bound which still rounds back to it has not overflowed: under FP16's default rounding the threshold sits at 65520, and the exact figure depends on the rounding rule, which this post leaves alone.
+When a result exceeds the largest finite value of the format, it becomes $\pm\infty$ (65504 for FP16, that is $(2-2^{-10})\times 2^{15}$). Strictly, a value slightly above that bound which still rounds back to it has not overflowed: under FP16's default rounding the threshold sits at 65520, and the exact figure depends on the rounding rule, which this post leaves alone.[^754-overflow]
 
 The exponent width decides how easily a format overflows. FP16 has 5 exponent bits against 8 in BF16, and a correspondingly smaller largest value, so FP16 overflows far more readily.
 
@@ -166,7 +166,7 @@ $$
 \operatorname{ulp}(x) = 2^{E-n},
 $$
 
-an absolute spacing that is constant inside a binade and changes with $E$. The corresponding relative spacing $\operatorname{ulp}(x)/x$ falls from $2^{-n}$ at the low end to $2^{-n-1}$ at the high end, so the relative precision of one format swings by a factor of the base across a binade. Higham calls this wobbling precision.
+an absolute spacing that is constant inside a binade and changes with $E$. The corresponding relative spacing $\operatorname{ulp}(x)/x$ falls from $2^{-n}$ at the low end to $2^{-n-1}$ at the high end, so the relative precision of one format swings by a factor of the base across a binade. Higham calls this wobbling precision.[^higham-wobble]
 
 Concrete numbers: FP32 has an ulp of about $1.2\times10^{-7}$ near $x=1$ and about $1.2\times10^{-4}$ near $x=1024$. An increment of $10^{-5}$ still changes the result when added to 1, and is already less than half an ulp when added to 1024.
 
@@ -198,7 +198,7 @@ In the normalized range $x/\operatorname{ulp}(x)$ lies in $[2^n, 2^{n+1})$, so $
 
 ## Worked Example
 
-Take the 6-bit toy format: $k=3$ exponent bits, $n=2$ fraction bits, Bias $= 2^{2}-1 = 3$.
+Take the 6-bit toy format: $k=3$ exponent bits, $n=2$ fraction bits, Bias $= 2^{2}-1 = 3$.[^csapp-example]
 
 | Description | Bit pattern | $E$  | $M$   | Value |
 | ------- | ---------- | ---- | ----- | --------- |
@@ -240,13 +240,13 @@ FP32 is the reference for accuracy, and some precision-sensitive operators promo
 
 TF32 pairs $k=8$ with $n=10$: the exponent field is identical to FP32, the fraction has 10 bits, so **the range matches FP32 and the precision matches FP16**. Those 10 fraction bits also omit the implicit leading 1, giving $t=11$ significant bits, the same as FP16.
 
-TF32 is a **compute mode** of the Tensor Core, not a storage type. Memory and every other operator still work in FP32; only convolution and matrix multiply round their inputs to TF32 before multiplying, keep the product exact, and accumulate in FP32. The difference from FP32 therefore shows up only at the inputs of those two operations, and no storage format changes.
+TF32 is a **compute mode** of the Tensor Core, not a storage type.[^nvidia-tf32] Memory and every other operator still work in FP32; only convolution and matrix multiply round their inputs to TF32 before multiplying, keep the product exact, and accumulate in FP32. The difference from FP32 therefore shows up only at the inputs of those two operations, and no storage format changes.
 
 The trend is toward computing in BF16 or narrower directly inside the Tensor Core, which has made TF32 less common.
 
 ### BF16
 
-BF16 also uses 8 exponent bits with only 7 fraction bits: $t=8$, and the range is exactly FP32's.
+BF16 also uses 8 exponent bits with only 7 fraction bits: $t=8$, and the range is exactly FP32's.[^google-bf16]
 
 The design gives the exponent field FP32's width and squeezes the fraction. Because the exponent field matches FP32, overflow, underflow and NaN behave the same way, at the cost of lower precision.
 
@@ -281,10 +281,15 @@ And the count of binades, ulp, machine epsilon and significant bits, sampled at 
 | FP16 | 10  | $9.5\times10^{-7}$ | $9.8\times10^{-4}$ | $1$ | 11  | 30 |
 | BF16 | 7   | $7.6\times10^{-6}$ | $7.8\times10^{-3}$ | $8$ | 8   | 254 |
 
-## References
-
-- Randal E. Bryant and David R. O'Hallaron (2016), *Computer Systems: A Programmer's Perspective*, 3rd ed., Section 2.4 "Floating Point", pp. 145–157.
-- Nicholas J. Higham (2002), *Accuracy and Stability of Numerical Algorithms*, 2nd ed., SIAM, Section 2.1 "Floating Point Number System" and Section 2.3 "IEEE Arithmetic", pp. 36–44.
-- IEEE (2019), *IEEE Standard for Floating-Point Arithmetic*, IEEE Std 754-2019, Clause 3.3 "Sets of floating-point data", Clause 3.4 "Binary interchange format encodings", Clause 3.6 "Interchange format parameters", pp. 18–24.
-- Shibo Wang and Pankaj Kanwar (2019), "BFloat16: The Secret to High Performance on Cloud TPUs", Google Cloud Blog.
-- Dusan Stosic (2021), "Accelerating AI Training with TF32 Tensor Cores", NVIDIA Technical Blog.
+[^csapp-fmt]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.2 "IEEE Floating-Point Representation", Figure 2.32, p. 149.
+[^754-params]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §3.6 "Interchange format parameters", Table 3.5, p. 23.
+[^csapp-cat]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, Figure 2.33 "Categories of single-precision floating-point values", p. 150.
+[^754-subnormal]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §2.1 "Definitions" (denormalized number: See subnormal number), p. 13.
+[^csapp-bias-aside]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, Aside "Why set the bias this way for denormalized values?", p. 150.
+[^csapp-gradual]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, §2.4.2, "gradual underflow", p. 151.
+[^754-enc]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §3.4 "Binary interchange format encodings", p. 19.
+[^754-overflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
+[^higham-wobble]: Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.1 "Floating Point Number System" (wobbling precision), p. 36.
+[^csapp-example]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, Figure 2.34 "Representable values for 6-bit floating-point format", p. 151.
+[^nvidia-tf32]: Dusan Stosic (2021), "Accelerating AI Training with TF32 Tensor Cores", NVIDIA Technical Blog.
+[^google-bf16]: Shibo Wang and Pankaj Kanwar (2019), "BFloat16: The Secret to High Performance on Cloud TPUs", Google Cloud Blog, section "Bfloat16 semantics".
