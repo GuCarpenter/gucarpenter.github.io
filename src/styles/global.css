@@ -109,3 +109,46 @@
   ):hover {
   text-decoration: underline;
 }
+
+/* GFM footnotes: remark-gfm emits <sup><a data-footnote-ref> and
+   <section data-footnotes>, none of which @tailwindcss/typography styles.
+   The hook is the attribute, not a class: the anchor carries
+   `data-footnote-ref`, and the back-link carries `data-footnote-backref`
+   (also spelled as that string in `class`, a quirk of mdast-util-gfm-footnote). */
+.prose :where(a[data-footnote-ref]) {
+  @apply text-sky-600 dark:text-sky-400;
+  text-decoration: none;
+  padding-left: 0.1em;
+}
+
+.prose :where(a[data-footnote-ref]):hover {
+  text-decoration: underline;
+}
+
+.prose :where(sup:has(> a[data-footnote-ref])) {
+  @apply align-super text-[0.7em] leading-none;
+}
+
+.prose :where(section[data-footnotes]) {
+  @apply mt-12 border-t border-gray-200 pt-6 dark:border-dark-border;
+}
+
+.prose :where(section[data-footnotes] ol) {
+  @apply mt-0 pl-5 text-[0.92em];
+}
+
+.prose :where(section[data-footnotes] li) {
+  @apply my-2 text-slate-600 dark:text-slate-400;
+}
+
+.prose :where(section[data-footnotes] li::marker) {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+.prose :where(section[data-footnotes] li p) {
+  @apply my-0;
+}
+
+.prose :where(a[data-footnote-backref]) {
+  @apply ml-1 no-underline text-sky-600 dark:text-sky-400;
+}

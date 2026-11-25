@@ -13,9 +13,9 @@ This post is the second in the floating-point series and covers rounding and con
 
 ## Rounding
 
-IEEE 754-2019 defines rounding as follows: every operation is equivalent to first producing an intermediate result of unbounded precision and unbounded range, then rounding that result to the destination format under some rounding mode. It guarantees that one operation produces one rounding.[1]
+IEEE 754-2019 defines rounding as follows: every operation is equivalent to first producing an intermediate result of unbounded precision and unbounded range, then rounding that result to the destination format under some rounding mode. It guarantees that one operation produces one rounding.[^754-rounding]
 
-IEEE 754-2019 defines five rounding modes[2]:
+IEEE 754-2019 defines five rounding modes:[^754-modes]
 
 | Attribute            | Abbrev. | C `fenv`             | PTX               | Semantics                   |
 | ------------------- | --- | ---------------------- | ----------------- | ------------------------- |
@@ -25,7 +25,7 @@ IEEE 754-2019 defines five rounding modes[2]:
 | roundTowardNegative | RTN | `FE_DOWNWARD`          | `cvt.rm.*`        | round down, toward $-\infty$          |
 | roundTowardZero     | RTZ | `FE_TOWARDZERO`        | `cvt.rz.*`        | round toward zero, that is, truncate the magnitude          |
 
-`RNA` is the only rounding mode that need not be implemented.[3]
+`RNA` is the only rounding mode that need not be implemented.[^754-rna-optional]
 
 The first two are round-to-nearest modes and the last three are directed. The default floating-point rounding mode is the first.
 
@@ -45,7 +45,7 @@ $$
 \frac{|fl(x)-x|}{|x|} \le \frac{2^{E-n-1}}{2^{E}} = 2^{-n-1} = 2^{-t} =: u .
 $$
 
-The standard model of floating-point arithmetic follows[4]
+The standard model of floating-point arithmetic follows[^higham-model]
 
 $$
 fl(x) = x(1+\delta), \qquad |\delta| \le u .
@@ -69,7 +69,7 @@ Machine epsilon is exactly twice the rounding error: $\epsilon_M=\operatorname{u
 
 We can now answer why the default rounding mode is `RNE`. The analysis above shows round-to-nearest keeps half the error of a directed mode, so round-to-nearest is the better choice. Why `RNE` rather than `RNA`?
 
-Assume ties occur symmetrically in both directions. If ties are always resolved the same way (`RNA`), the expected bias is $\tfrac12\operatorname{ulp}\times P(\text{tie})$ with a fixed sign, and in a long sum it can accumulate into a visible drift. With `RNE` the probability of rounding up equals the probability of rounding down, so the expected bias is 0[5]. Take the BF16 binade $[1, 2)$: the ulp is $2^{-7}$, the binade holds 128 tie midpoints, and under `RNE` 64 of them round to 1 and 64 round to 2. Under `RNA` all 128 round to 2.
+Assume ties occur symmetrically in both directions. If ties are always resolved the same way (`RNA`), the expected bias is $\tfrac12\operatorname{ulp}\times P(\text{tie})$ with a fixed sign, and in a long sum it can accumulate into a visible drift. With `RNE` the probability of rounding up equals the probability of rounding down, so the expected bias is 0[^csapp-rne]. Take the BF16 binade $[1, 2)$: the ulp is $2^{-7}$, the binade holds 128 tie midpoints, and under `RNE` 64 of them round to 1 and 64 round to 2. Under `RNA` all 128 round to 2.
 
 ### Truncation Mode `RTZ`
 
@@ -120,7 +120,7 @@ The overflow case was introduced in [浮点数的表示 › 上溢](https://guca
 | $65520$ | $+\infty$ | $+\infty$ | $+\infty$ | $65504$ | $65504$ |
 | $-65520$ | $-\infty$ | $-\infty$ | $-65504$ | $-\infty$ | $-65504$ |
 
-Why 65520 is the special value: the last binade of FP16 is $[2^{15}, 2^{16})$ with spacing $ulp=2^{15-10}=32$, so the largest finite value is 65504, the next grid point is 65536, and the midpoint between them is 65520. Just below it every mode except RTP rounds normally to 65504, and RTP rounds up to infinity. At exactly 65520 only RTN, rounding down, and RTZ, rounding toward zero, come back to 65504. For -65520 the same holds with signs reversed: only RTP and RTZ reach -65504.[6]
+Why 65520 is the special value: the last binade of FP16 is $[2^{15}, 2^{16})$ with spacing $ulp=2^{15-10}=32$, so the largest finite value is 65504, the next grid point is 65536, and the midpoint between them is 65520. Just below it every mode except RTP rounds normally to 65504, and RTP rounds up to infinity. At exactly 65520 only RTN, rounding down, and RTZ, rounding toward zero, come back to 65504. For -65520 the same holds with signs reversed: only RTP and RTZ reach -65504.[^754-overflow]
 
 The underflow case also appeared in [浮点数的表示 › 下溢](https://gucarpenter.github.io/blog/floating-point-representation/) and is the obscure one of the three. The smallest positive normal FP16 number is $2^{-14}\approx 6.10\times10^{-5}$ while the smallest positive normal FP32 number reaches $2^{-126}\approx 1.18\times10^{-38}$, so a value such as $1.0\times10^{-5}$ is normal in FP32 and can only be subnormal in FP16. FP16 has $E_{\min}=-14$ and $n=10$, so the subnormal spacing is $2^{-24}=5.9604645\times10^{-8}$. Dividing the input $10^{-5}$ by it gives
 
@@ -130,7 +130,7 @@ $$
 
 round-to-nearest takes 168, so the result is $168\times 2^{-24} = 1.00135803\times10^{-5}$. That value has $n'=\lfloor\log_2 168\rfloor+1 = 8$ significant bits, three fewer than the 11 bits of the normal range — which is what "the relative bound fails" means concretely: the absolute spacing stays fixed at $2^{-24}$, so the smaller the magnitude, the looser the relative bound.
 
-The rounding mode changes the underflowed value as well[7]. The discussion above assumed the default `RNE`; the table below writes each result as $k\cdot 2^{-24}$, where $2^{-24}=5.9604645\times10^{-8}$ is the subnormal spacing:
+The rounding mode changes the underflowed value as well[^754-underflow]. The discussion above assumed the default `RNE`; the table below writes each result as $k\cdot 2^{-24}$, where $2^{-24}=5.9604645\times10^{-8}$ is the subnormal spacing:
 
 | Input (exact)             | RNE               | RNA               | RTP               | RTN                | RTZ                |
 | --------------------- | ----------------- | ----------------- | ----------------- | ------------------ | ------------------ |
@@ -154,7 +154,7 @@ The rounding mode changes the underflowed value as well[7]. The discussion above
 | `__fsqrt`  | ✓     | ✓     | ✓     | ✓     |
 | `__frsqrt` | ✓     | —     | —     | —     |
 
-Every intrinsic except the last supports all four rounding modes.[8]
+Every intrinsic except the last supports all four rounding modes.[^cuda-intrinsics]
 
 ### Narrow-Format Conversion
 
@@ -165,16 +165,14 @@ Every intrinsic except the last supports all four rounding modes.[8]
 | `__half2float`     | —     | —     | —     | —     | exact, no rounding  |
 | `__bfloat162float` | —     | —     | —     | —     | exact, no rounding  |
 
-FP32→BF16 and FP32→FP16 likewise support all four rounding modes, and the reverse conversions need no rounding.[9]
+FP32→BF16 and FP32→FP16 likewise support all four rounding modes, and the reverse conversions need no rounding.[^cuda-half]
 
-## References
-
-1. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §4.3 "Rounding-direction attributes", p. 27.
-2. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.1 "Rounding-direction attributes to nearest" and §4.3.2 "Directed rounding attributes", pp. 27–28.
-3. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.3 "Rounding attribute requirements", p. 28.
-4. Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.2 "Model of Arithmetic", p. 40.
-5. Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.4 "Rounding", pp. 156–157.
-6. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
-7. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.5 "Underflow", p. 53.
-8. NVIDIA, _CUDA C++ Programming Guide_, §16.2 "Intrinsic Functions", Table 19, p. 406.
-9. NVIDIA, _CUDA C++ Programming Guide_, §6.2.14.1.2 "16-Bit Floating-Point Textures", p. 86.
+[^754-rounding]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §4.3 "Rounding-direction attributes", p. 27.
+[^754-modes]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.1 "Rounding-direction attributes to nearest" and §4.3.2 "Directed rounding attributes", pp. 27–28.
+[^754-rna-optional]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.3 "Rounding attribute requirements", p. 28.
+[^higham-model]: Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.2 "Model of Arithmetic", p. 40.
+[^csapp-rne]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.4 "Rounding", pp. 156–157.
+[^754-overflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
+[^754-underflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.5 "Underflow", p. 53.
+[^cuda-intrinsics]: NVIDIA, _CUDA C++ Programming Guide_, §16.2 "Intrinsic Functions", Table 19, p. 406.
+[^cuda-half]: NVIDIA, _CUDA C++ Programming Guide_, §6.2.14.1.2 "16-Bit Floating-Point Textures", p. 86.

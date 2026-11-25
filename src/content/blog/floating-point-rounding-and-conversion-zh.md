@@ -13,9 +13,9 @@ lang: "zh"
 
 ## 舍入
 
-IEEE 754-2019定义了舍入：每条运算都等同于先产生一个无限精度、无范围限制的中间结果，再按某种舍入模式把这个结果舍入到目标类型。它保证一次运算只产生一次舍入。[1]
+IEEE 754-2019定义了舍入：每条运算都等同于先产生一个无限精度、无范围限制的中间结果，再按某种舍入模式把这个结果舍入到目标类型。它保证一次运算只产生一次舍入。[^754-rounding]
 
-IEEE 754-2019定义了5种舍入模式，如下表所示[2]：
+IEEE 754-2019定义了5种舍入模式，如下表所示[^754-modes]：
 
 | 属性                  | 缩写  | C `fenv`               | PTX               | 语义                        |
 | ------------------- | --- | ---------------------- | ----------------- | ------------------------- |
@@ -25,7 +25,7 @@ IEEE 754-2019定义了5种舍入模式，如下表所示[2]：
 | roundTowardNegative | RTN | `FE_DOWNWARD`          | `cvt.rm.*`        | 向下舍入，朝 $-\infty$          |
 | roundTowardZero     | RTZ | `FE_TOWARDZERO`        | `cvt.rz.*`        | 向零舍入，朝 0，即按量值截断           |
 
-`RNA`是唯一一种不强制实现的舍入模式。[3]
+`RNA`是唯一一种不强制实现的舍入模式。[^754-rna-optional]
 
 这里面前两种属于最近舍入，后三种属于定向舍入。默认的浮点数舍入模式采用第一种。
 
@@ -45,7 +45,7 @@ $$
 \frac{|fl(x)-x|}{|x|} \le \frac{2^{E-n-1}}{2^{E}} = 2^{-n-1} = 2^{-t} =: u .
 $$
 
-因此得到浮点数的标准模型[4]
+因此得到浮点数的标准模型[^higham-model]
 
 $$
 fl(x) = x(1+\delta), \qquad |\delta| \le u .
@@ -69,7 +69,7 @@ $$
 
 现在我们可以回头来回答为什么默认的舍入模式是`RNE`了。从上面的分析可以得到，就近舍入的舍入误差是定向舍入的一半，因此就近舍入是误差更小的选择。那么为什么要选择`RNE`而不是`RNA`呢？
 
-假设平局事件在两个方向上对称地出现。如果恒定朝一个方向处理平局（`RNA`），期望偏置是 $\tfrac12\operatorname{ulp}\times P(\text{平局})$，符号固定，在长求和里可能累积成可见漂移。如果选择 `RNE`，那么向上舍入和向下舍入的概率相等，期望偏置是0[5]。以BF16的$[1, 2)$ 指数区间为例，区间距ulp是$2^{-7}$， 区间内有128个平局中点，在 `RNE` 下64个会舍入到1，64个舍入到2。而在 `RNA` 下，128个都会舍入到2。
+假设平局事件在两个方向上对称地出现。如果恒定朝一个方向处理平局（`RNA`），期望偏置是 $\tfrac12\operatorname{ulp}\times P(\text{平局})$，符号固定，在长求和里可能累积成可见漂移。如果选择 `RNE`，那么向上舍入和向下舍入的概率相等，期望偏置是0[^csapp-rne]。以BF16的$[1, 2)$ 指数区间为例，区间距ulp是$2^{-7}$， 区间内有128个平局中点，在 `RNE` 下64个会舍入到1，64个舍入到2。而在 `RNA` 下，128个都会舍入到2。
 
 ### 截断舍入模式 `RTZ`
 
@@ -120,7 +120,7 @@ flowchart TD
 | $65520$ | $+\infty$ | $+\infty$ | $+\infty$ | $65504$ | $65504$ |
 | $-65520$ | $-\infty$ | $-\infty$ | $-65504$ | $-\infty$ | $-65504$ |
 
-为什么会是65520这个特殊的值，因为FP16的最后一个指数区间是$[2^{15}, 2^{16})$，对应的区间距是$ulp=2^{15-10}=32$, 对应的最大有限值是65504，下一个点就是65536，对应的中间就是65520。对于略小于这个值的数，除了RTP会向上舍入到无穷，其他都正常舍入到65504。但到了65520，只有RTN向下舍入和RTZ向零舍入才能回到65504。对于-65520来说，类似的只有RTP向上舍入和RTZ向零舍入才能回到-65504。[6]
+为什么会是65520这个特殊的值，因为FP16的最后一个指数区间是$[2^{15}, 2^{16})$，对应的区间距是$ulp=2^{15-10}=32$, 对应的最大有限值是65504，下一个点就是65536，对应的中间就是65520。对于略小于这个值的数，除了RTP会向上舍入到无穷，其他都正常舍入到65504。但到了65520，只有RTN向下舍入和RTZ向零舍入才能回到65504。对于-65520来说，类似的只有RTP向上舍入和RTZ向零舍入才能回到-65504。[^754-overflow]
 
 下溢的场景在[浮点数的表示 › 下溢](https://gucarpenter.github.io/zh/blog/floating-point-representation/)中也有过说明，也是这三种场景中最晦涩的一种。由于FP16的最小正规格化数是$2^{-14}\approx 6.10\times10^{-5}$， 而FP32的最小正规格化数达到了$2^{-126}\approx 1.18\times10^{-38}$， 因此对于$1.0\times10^{-5}$这样的数，在FP32中以正规格化数表示，在FP16中只能以非规格化数表示了。FP16 的 $E_{\min}=-14$、$n=10$，所以非规格化区的间距是 $2^{-24}=5.9604645\times10^{-8}$。输入 $10^{-5}$ 除以它得
 
@@ -130,7 +130,7 @@ $$
 
 最近舍入取 168，于是结果是 $168\times 2^{-24} = 1.00135803\times10^{-5}$。这个值有 $n'=\lfloor\log_2 168\rfloor+1 = 8$ 位有效数字，比规格化区的 11 位少了 3 位——这就是"相对误差界失效"的具体含义：绝对间距固定在 $2^{-24}$，量级越小，相对误差界越大。
 
-值得注意的是不同舍入模式也影响了下溢的值[7]。上面的讨论是基于默认的`RNE` 模式，下表把结果写成 $k\cdot 2^{-24}$ 的形式，$2^{-24}=5.9604645\times10^{-8}$ 就是非规格化区的间距：
+值得注意的是不同舍入模式也影响了下溢的值[^754-underflow]。上面的讨论是基于默认的`RNE` 模式，下表把结果写成 $k\cdot 2^{-24}$ 的形式，$2^{-24}=5.9604645\times10^{-8}$ 就是非规格化区的间距：
 
 | 输入（精确值）               | RNE               | RNA               | RTP               | RTN                | RTZ                |
 | --------------------- | ----------------- | ----------------- | ----------------- | ------------------ | ------------------ |
@@ -154,7 +154,7 @@ $$
 | `__fsqrt`  | ✓     | ✓     | ✓     | ✓     |
 | `__frsqrt` | ✓     | —     | —     | —     |
 
-除了最后一个内建函数，其他都支持四种舍入模式。[8]
+除了最后一个内建函数，其他都支持四种舍入模式。[^cuda-intrinsics]
 
 ### 窄格式转换
 
@@ -165,16 +165,14 @@ $$
 | `__half2float`     | —     | —     | —     | —     | 精确，无舍入  |
 | `__bfloat162float` | —     | —     | —     | —     | 精确，无舍入  |
 
-类似的，对于FP32→BF16和FP32→FP16，也支持四种舍入模式。而反向的转换不需要舍入。[9]
+类似的，对于FP32→BF16和FP32→FP16，也支持四种舍入模式。而反向的转换不需要舍入。[^cuda-half]
 
-## 参考文献
-
-1. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §4.3 "Rounding-direction attributes", p. 27.
-2. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.1 "Rounding-direction attributes to nearest" and §4.3.2 "Directed rounding attributes", pp. 27–28.
-3. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.3 "Rounding attribute requirements", p. 28.
-4. Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.2 "Model of Arithmetic", p. 40.
-5. Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.4 "Rounding", pp. 156–157.
-6. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
-7. IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.5 "Underflow", p. 53.
-8. NVIDIA, _CUDA C++ Programming Guide_, §16.2 "Intrinsic Functions", Table 19, p. 406.
-9. NVIDIA, _CUDA C++ Programming Guide_, §6.2.14.1.2 "16-Bit Floating-Point Textures", p. 86.
+[^754-rounding]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, IEEE Std 754-2019, §4.3 "Rounding-direction attributes", p. 27.
+[^754-modes]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.1 "Rounding-direction attributes to nearest" and §4.3.2 "Directed rounding attributes", pp. 27–28.
+[^754-rna-optional]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §4.3.3 "Rounding attribute requirements", p. 28.
+[^higham-model]: Nicholas J. Higham (2002), _Accuracy and Stability of Numerical Algorithms_, 2nd ed., §2.2 "Model of Arithmetic", p. 40.
+[^csapp-rne]: Randal E. Bryant and David R. O'Hallaron (2016), _Computer Systems: A Programmer's Perspective_, 3rd ed., §2.4.4 "Rounding", pp. 156–157.
+[^754-overflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.4 "Overflow", p. 53.
+[^754-underflow]: IEEE (2019), _IEEE Standard for Floating-Point Arithmetic_, §7.5 "Underflow", p. 53.
+[^cuda-intrinsics]: NVIDIA, _CUDA C++ Programming Guide_, §16.2 "Intrinsic Functions", Table 19, p. 406.
+[^cuda-half]: NVIDIA, _CUDA C++ Programming Guide_, §6.2.14.1.2 "16-Bit Floating-Point Textures", p. 86.

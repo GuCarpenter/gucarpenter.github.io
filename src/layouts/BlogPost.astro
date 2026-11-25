@@ -79,7 +79,11 @@ const displayCategory = category
 const tocHeadings = headings
   ? headings.filter(
       (h: { depth: number; text: string; slug: string }) =>
-        h.depth <= 3 && !h.text.includes("$") && !h.text.includes("\\"),
+        h.depth <= 3 &&
+        !h.text.includes("$") &&
+        !h.text.includes("\\") &&
+        // remark-gfm appends a hidden "Footnotes" heading; it is not a section.
+        h.slug !== "footnote-label",
     )
   : [];
 ---
